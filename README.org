@@ -1,0 +1,46 @@
+#+TITLE: Claude Code Metrics Lab
+#+DESCRIPTION: OpenTelemetry-based metrics tracking and analysis for Claude Code usage
+
+* Overview
+This lab provides tools and dashboards for tracking Claude Code usage across projects.
+
+* Features
+- Real-time metrics collection via OTEL
+- Custom Grafana dashboards
+- Cost analysis and projections
+- Usage pattern analysis
+- Per-project tracking
+- Model comparison metrics
+
+* Quick Start
+1. Ensure OTEL infrastructure is running (see pi-setup)
+2. Import dashboards from =dashboards/=
+3. Run analysis scripts from =src/=
+
+* Usage
+
+** Running Analysis
+#+begin_src bash
+# Project metrics
+python3 src/project_metrics.py
+
+# Cost analysis  
+python3 src/cost_analyzer.py
+
+# Session patterns
+python3 src/session_analyzer.py
+#+end_src
+
+** Tangle Configuration
+#+begin_src bash
+# Extract all source files from SETUP.org
+make tangle
+#+end_src
+
+* Requirements
+- Python 3.8+
+- OpenTelemetry infrastructure
+- Prometheus and Grafana
+- Claude Code with telemetry enabled
+
+See =docs/setup.org= for detailed setup instructions.

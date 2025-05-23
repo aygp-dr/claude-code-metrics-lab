@@ -1,0 +1,827 @@
+#+TITLE: Claude Code Metrics Lab
+#+AUTHOR: aygp-dr
+#+DATE: 2025-05-23
+#+PROPERTY: header-args :mkdirp yes
+
+* Overview
+
+A dedicated lab for tracking, analyzing, and visualizing Claude Code usage metrics using OpenTelemetry.
+
+* Repository Structure
+
+#+begin_src bash :tangle init-repo.sh :shebang "#!/bin/bash"
+# Initialize claude-code-metrics-lab repository
+
+mkdir -p claude-code-metrics-lab/{src,dashboards,queries,exports,analysis,docs}
+cd claude-code-metrics-lab
+
+# Initialize git
+git init
+
+# Create README
+cat > README.org << 'EOF'
+#+TITLE: Claude Code Metrics Lab
+#+DESCRIPTION: OpenTelemetry-based metrics tracking and analysis for Claude Code usage
+
+* Overview
+This lab provides tools and dashboards for tracking Claude Code usage across projects.
+
+* Features
+- Real-time metrics collection via OTEL
+- Custom Grafana dashboards
+- Cost analysis and projections
+- Usage pattern analysis
+- Per-project tracking
+- Model comparison metrics
+
+* Quick Start
+1. Ensure OTEL infrastructure is running (see pi-setup)
+2. Import dashboards from =dashboards/=
+3. Run analysis scripts from =src/=
+EOF
+
+# Create .gitignore
+cat > .gitignore << 'EOF'
+*.pyc
+__pycache__/
+.env
+exports/*.json
+exports/*.csv
+.DS_Store
+venv/
+.direnv/
+EOF
+#+end_src
+
+* Metrics Collection Scripts
+
+** Project-Based Metrics Aggregator
+
+#+begin_src python :tangle src/project_metrics.py :mkdirp yes
+#!/usr/bin/env python3
+"""
+Aggregate Claude Code metrics by project based on working directory
+"""
+import os
+import json
+import requests
+from datetime import datetime, timedelta
+from collections import defaultdict
+
+PROMETHEUS_URL = "http://localhost:9090"
+
+def get_project_metrics(days=30):
+    """Fetch Claude metrics and group by project"""
+    end_time = datetime.now()
+    start_time = end_time - timedelta(days=days)
+    
+    # Query for token usage
+    query = 'otel_claude_code_token_usage_tokens_total'
+    response = requests.get(f"{PROMETHEUS_URL}/api/v1/query_range", params={
+        'query': query,
+        'start': start_time.isoformat(),
+        'end': end_time.isoformat(),
+        'step': '1h'
+    })
+    
+    if response.status_code != 200:
+        return None
+    
+    data = response.json()
+    project_metrics = defaultdict(lambda: {
+        'tokens': 0,
+        'cost': 0.0,
+        'sessions': 0,
+        'models': defaultdict(int)
+    })
+    
+    # Process results
+    for result in data.get('data', {}).get('result', []):
+        metric = result['metric']
+        # Extract project from session metadata if available
+        # For now, aggregate by model
+        model = metric.get('model', 'unknown')
+        
+        for value in result['values']:
+            timestamp, token_count = value
+            project_metrics['all']['tokens'] += int(float(token_count))
+            project_metrics['all']['models'][model] += int(float(token_count))
+    
+    return dict(project_metrics)
+
+def export_metrics(metrics, output_dir='exports'):
+    """Export metrics to JSON file"""
+    os.makedirs(output_dir, exist_ok=True)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f"{output_dir}/claude_metrics_{timestamp}.json"
+    
+    with open(filename, 'w') as f:
+        json.dump({
+            'timestamp': timestamp,
+            'metrics': metrics
+        }, f, indent=2)
+    
+    print(f"Metrics exported to {filename}")
+    return filename
+
+if __name__ == "__main__":
+    metrics = get_project_metrics()
+    if metrics:
+        export_metrics(metrics)
+        print(json.dumps(metrics, indent=2))
+#+end_src
+
+** Cost Analysis Tool
+
+#+begin_src python :tangle src/cost_analyzer.py :mkdirp yes
+#!/usr/bin/env python3
+"""
+Analyze Claude Code costs and project future expenses
+"""
+import requests
+import pandas as pd
+from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
+
+PROMETHEUS_URL = "http://localhost:9090"
+
+# Claude pricing (as of 2025)
+PRICING = {
+    'claude-3-5-haiku-20241022': {
+        'input': 0.001,   # per 1K tokens
+        'output': 0.005,  # per 1K tokens
+    },
+    'claude-3-opus-20240229': {
+        'input': 0.015,
+        'output': 0.075,
+    },
+    'claude-3-sonnet-20240229': {
+        'input': 0.003,
+        'output': 0.015,
+    }
+}
+
+def get_cost_metrics(days=30):
+    """Fetch cost metrics from Prometheus"""
+    query = 'otel_claude_code_cost_usage_USD_total'
+    end_time = datetime.now()
+    start_time = end_time - timedelta(days=days)
+    
+    response = requests.get(f"{PROMETHEUS_URL}/api/v1/query_range", params={
+        'query': f'sum by (model) ({query})',
+        'start': start_time.isoformat(),
+        'end': end_time.isoformat(),
+        'step': '1d'
+    })
+    
+    if response.status_code != 200:
+        return None
+    
+    return response.json()
+
+def analyze_cost_trends(data):
+    """Analyze cost trends and project future costs"""
+    if not data or 'data' not in data:
+        return None
+    
+    results = []
+    for series in data['data']['result']:
+        model = series['metric'].get('model', 'unknown')
+        values = series['values']
+        
+        # Convert to DataFrame
+        df = pd.DataFrame(values, columns=['timestamp', 'cost'])
+        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
+        df['cost'] = df['cost'].astype(float)
+        df['model'] = model
+        
+        results.append(df)
+    
+    if results:
+        return pd.concat(results, ignore_index=True)
+    return None
+
+def project_monthly_cost(df):
+    """Project monthly costs based on current usage"""
+    if df is None or df.empty:
+        return {}
+    
+    # Calculate daily average
+    df['date'] = df['timestamp'].dt.date
+    daily_costs = df.groupby(['date', 'model'])['cost'].max().reset_index()
+    
+    # Calculate daily increase
+    daily_avg = daily_costs.groupby('model')['cost'].diff().mean()
+    
+    projections = {}
+    for model in daily_costs['model'].unique():
+        model_data = daily_costs[daily_costs['model'] == model]
+        if not model_data.empty:
+            current_cost = model_data['cost'].iloc[-1]
+            daily_increase = daily_avg if pd.notna(daily_avg) else 0
+            projected_monthly = current_cost + (daily_increase * 30)
+            projections[model] = {
+                'current': current_cost,
+                'daily_avg_increase': daily_increase,
+                'projected_monthly': projected_monthly
+            }
+    
+    return projections
+
+def visualize_costs(df):
+    """Create cost visualization"""
+    if df is None or df.empty:
+        return
+    
+    plt.figure(figsize=(12, 6))
+    
+    for model in df['model'].unique():
+        model_data = df[df['model'] == model]
+        plt.plot(model_data['timestamp'], model_data['cost'], 
+                label=model, marker='o')
+    
+    plt.xlabel('Date')
+    plt.ylabel('Cost (USD)')
+    plt.title('Claude Code Costs Over Time')
+    plt.legend()
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig('exports/cost_trends.png')
+    plt.close()
+
+if __name__ == "__main__":
+    data = get_cost_metrics()
+    df = analyze_cost_trends(data)
+    
+    if df is not None:
+        projections = project_monthly_cost(df)
+        print("Cost Projections:")
+        for model, proj in projections.items():
+            print(f"\n{model}:")
+            print(f"  Current total: ${proj['current']:.4f}")
+            print(f"  Daily average increase: ${proj['daily_avg_increase']:.4f}")
+            print(f"  Projected monthly: ${proj['projected_monthly']:.2f}")
+        
+        visualize_costs(df)
+        print("\nCost trend chart saved to exports/cost_trends.png")
+#+end_src
+
+** Session Pattern Analyzer
+
+#+begin_src python :tangle src/session_analyzer.py :mkdirp yes
+#!/usr/bin/env python3
+"""
+Analyze Claude Code session patterns
+"""
+import requests
+from datetime import datetime, timedelta
+from collections import Counter
+import json
+
+PROMETHEUS_URL = "http://localhost:9090"
+
+def get_session_patterns(days=7):
+    """Analyze session patterns - when do you use Claude most?"""
+    query = 'otel_claude_code_session_count_total'
+    end_time = datetime.now()
+    start_time = end_time - timedelta(days=days)
+    
+    response = requests.get(f"{PROMETHEUS_URL}/api/v1/query_range", params={
+        'query': f'increase({query}[1h])',
+        'start': start_time.isoformat(),
+        'end': end_time.isoformat(),
+        'step': '1h'
+    })
+    
+    if response.status_code != 200:
+        return None
+    
+    data = response.json()
+    
+    # Analyze patterns
+    hour_counts = Counter()
+    day_counts = Counter()
+    
+    for result in data.get('data', {}).get('result', []):
+        for timestamp, value in result['values']:
+            if float(value) > 0:
+                dt = datetime.fromtimestamp(float(timestamp))
+                hour_counts[dt.hour] += 1
+                day_counts[dt.strftime('%A')] += 1
+    
+    return {
+        'peak_hours': hour_counts.most_common(5),
+        'peak_days': day_counts.most_common(7),
+        'total_sessions': sum(hour_counts.values())
+    }
+
+def get_token_efficiency():
+    """Calculate token efficiency metrics"""
+    # Get input vs output token ratio
+    input_query = 'sum(otel_claude_code_token_usage_tokens_total{type="input"})'
+    output_query = 'sum(otel_claude_code_token_usage_tokens_total{type="output"})'
+    
+    input_resp = requests.get(f"{PROMETHEUS_URL}/api/v1/query", 
+                             params={'query': input_query})
+    output_resp = requests.get(f"{PROMETHEUS_URL}/api/v1/query", 
+                              params={'query': output_query})
+    
+    if input_resp.status_code == 200 and output_resp.status_code == 200:
+        input_data = input_resp.json()
+        output_data = output_resp.json()
+        
+        input_tokens = float(input_data['data']['result'][0]['value'][1]) if input_data['data']['result'] else 0
+        output_tokens = float(output_data['data']['result'][0]['value'][1]) if output_data['data']['result'] else 0
+        
+        if input_tokens > 0:
+            efficiency_ratio = output_tokens / input_tokens
+            return {
+                'input_tokens': int(input_tokens),
+                'output_tokens': int(output_tokens),
+                'efficiency_ratio': round(efficiency_ratio, 2),
+                'interpretation': 'High efficiency' if efficiency_ratio > 10 else 'Normal efficiency'
+            }
+    
+    return None
+
+if __name__ == "__main__":
+    patterns = get_session_patterns()
+    if patterns:
+        print("Session Patterns (Last 7 Days):")
+        print(f"Total sessions: {patterns['total_sessions']}")
+        print("\nPeak hours (24h format):")
+        for hour, count in patterns['peak_hours']:
+            print(f"  {hour:02d}:00 - {count} sessions")
+        print("\nPeak days:")
+        for day, count in patterns['peak_days']:
+            print(f"  {day}: {count} sessions")
+    
+    efficiency = get_token_efficiency()
+    if efficiency:
+        print("\nToken Efficiency:")
+        print(f"  Input tokens: {efficiency['input_tokens']:,}")
+        print(f"  Output tokens: {efficiency['output_tokens']:,}")
+        print(f"  Efficiency ratio: {efficiency['efficiency_ratio']}x")
+        print(f"  Assessment: {efficiency['interpretation']}")
+#+end_src
+
+* Enhanced Grafana Dashboards
+
+** Project Tracking Dashboard
+
+#+begin_src json :tangle dashboards/claude-project-tracking.json :mkdirp yes
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Track which projects use Claude most",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "displayLabels": ["percent"],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": ["value", "percent"]
+        },
+        "pieType": "donut",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (session_id) (otel_claude_code_token_usage_tokens_total)",
+          "legendFormat": "Session {{session_id}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Token Usage by Session",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "custom": {
+            "fillOpacity": 70,
+            "lineWidth": 0,
+            "spanNulls": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "alignValue": "left",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "mergeValues": true,
+        "rowHeight": 0.9,
+        "showValue": "auto",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "increase(otel_claude_code_session_count_total[1h])",
+          "legendFormat": "Sessions",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Session Activity Heatmap",
+      "type": "state-timeline"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Token usage efficiency",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 20,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "green",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum(otel_claude_code_token_usage_tokens_total{type=\"output\"}) / sum(otel_claude_code_token_usage_tokens_total{type=\"input\"})",
+          "legendFormat": "Output/Input Ratio",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Token Efficiency (Output/Input Ratio)",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": ["last", "mean"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (model) (increase(otel_claude_code_cost_usage_USD_total[1d]))",
+          "legendFormat": "{{model}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Daily Cost by Model",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["claude", "projects", "tracking"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Claude Code - Project Tracking",
+  "uid": "claude-project-tracking",
+  "version": 0,
+  "weekStart": ""
+}
+#+end_src
+
+* Prometheus Queries Library
+
+#+begin_src yaml :tangle queries/useful-queries.yaml :mkdirp yes
+# Useful Prometheus queries for Claude Code metrics
+
+queries:
+  cost_analysis:
+    - name: "Total cost last 24h"
+      query: "increase(otel_claude_code_cost_usage_USD_total[24h])"
+    
+    - name: "Cost per model last 7d"
+      query: "sum by (model) (increase(otel_claude_code_cost_usage_USD_total[7d]))"
+    
+    - name: "Hourly cost rate"
+      query: "rate(otel_claude_code_cost_usage_USD_total[1h]) * 3600"
+
+  token_analysis:
+    - name: "Token usage by type"
+      query: "sum by (type) (otel_claude_code_token_usage_tokens_total)"
+    
+    - name: "Cache hit rate"
+      query: |
+        sum(otel_claude_code_token_usage_tokens_total{type="cacheRead"}) / 
+        sum(otel_claude_code_token_usage_tokens_total{type=~"input|cacheRead"})
+    
+    - name: "Average tokens per session"
+      query: |
+        sum(otel_claude_code_token_usage_tokens_total) / 
+        count(count by (session_id) (otel_claude_code_session_count_total))
+
+  efficiency_metrics:
+    - name: "Output/Input ratio"
+      query: |
+        sum(otel_claude_code_token_usage_tokens_total{type="output"}) /
+        sum(otel_claude_code_token_usage_tokens_total{type="input"})
+    
+    - name: "Cost per 1K tokens"
+      query: |
+        sum(otel_claude_code_cost_usage_USD_total) / 
+        (sum(otel_claude_code_token_usage_tokens_total) / 1000)
+
+  usage_patterns:
+    - name: "Sessions per day"
+      query: "increase(otel_claude_code_session_count_total[1d])"
+    
+    - name: "Peak usage hours"
+      query: "increase(otel_claude_code_session_count_total[1h])"
+    
+    - name: "Model preference"
+      query: "count by (model) (otel_claude_code_token_usage_tokens_total)"
+
+  alerts:
+    - name: "High cost rate"
+      query: "rate(otel_claude_code_cost_usage_USD_total[5m]) * 86400 > 10"
+      description: "Alert if daily cost projection exceeds $10"
+    
+    - name: "Unusual token usage"
+      query: "rate(otel_claude_code_token_usage_tokens_total[5m]) > 1000"
+      description: "Alert on high token consumption rate"
+#+end_src
+
+* Setup Instructions
+
+#+begin_src org :tangle docs/setup.org :mkdirp yes
+#+TITLE: Claude Code Metrics Lab Setup
+
+* Prerequisites
+- Working OTEL infrastructure (see pi-setup/opentelemetry.org)
+- Prometheus and Grafana running
+- Claude Code with telemetry enabled
+
+* Installation
+
+1. Clone the repository:
+   #+begin_src bash
+   cd ~/projects/aygp-dr
+   git clone [repo-url] claude-code-metrics-lab
+   cd claude-code-metrics-lab
+   #+end_src
+
+2. Install Python dependencies:
+   #+begin_src bash
+   pip3 install -r requirements.txt
+   #+end_src
+
+3. Import Grafana dashboards:
+   - Open Grafana (http://pi.lan:3000)
+   - Import dashboards from =dashboards/= directory
+
+4. Run initial analysis:
+   #+begin_src bash
+   python3 src/project_metrics.py
+   python3 src/cost_analyzer.py
+   python3 src/session_analyzer.py
+   #+end_src
+
+* Usage
+
+** Automated Reports
+Set up a cron job for daily reports:
+#+begin_src bash
+0 9 * * * cd /home/aygp-dr/projects/aygp-dr/claude-code-metrics-lab && python3 src/project_metrics.py
+#+end_src
+
+** Manual Analysis
+Run any script in =src/= for on-demand analysis.
+
+** Custom Queries
+Use queries from =queries/useful-queries.yaml= in Prometheus or Grafana.
+#+end_src
+
+* Requirements File
+
+#+begin_src text :tangle requirements.txt
+requests>=2.31.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+prometheus-client>=0.19.0
+pyyaml>=6.0
+#+end_src

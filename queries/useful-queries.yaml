@@ -1,0 +1,56 @@
+# Useful Prometheus queries for Claude Code metrics
+
+queries:
+  cost_analysis:
+    - name: "Total cost last 24h"
+      query: "increase(otel_claude_code_cost_usage_USD_total[24h])"
+    
+    - name: "Cost per model last 7d"
+      query: "sum by (model) (increase(otel_claude_code_cost_usage_USD_total[7d]))"
+    
+    - name: "Hourly cost rate"
+      query: "rate(otel_claude_code_cost_usage_USD_total[1h]) * 3600"
+
+  token_analysis:
+    - name: "Token usage by type"
+      query: "sum by (type) (otel_claude_code_token_usage_tokens_total)"
+    
+    - name: "Cache hit rate"
+      query: |
+        sum(otel_claude_code_token_usage_tokens_total{type="cacheRead"}) / 
+        sum(otel_claude_code_token_usage_tokens_total{type=~"input|cacheRead"})
+    
+    - name: "Average tokens per session"
+      query: |
+        sum(otel_claude_code_token_usage_tokens_total) / 
+        count(count by (session_id) (otel_claude_code_session_count_total))
+
+  efficiency_metrics:
+    - name: "Output/Input ratio"
+      query: |
+        sum(otel_claude_code_token_usage_tokens_total{type="output"}) /
+        sum(otel_claude_code_token_usage_tokens_total{type="input"})
+    
+    - name: "Cost per 1K tokens"
+      query: |
+        sum(otel_claude_code_cost_usage_USD_total) / 
+        (sum(otel_claude_code_token_usage_tokens_total) / 1000)
+
+  usage_patterns:
+    - name: "Sessions per day"
+      query: "increase(otel_claude_code_session_count_total[1d])"
+    
+    - name: "Peak usage hours"
+      query: "increase(otel_claude_code_session_count_total[1h])"
+    
+    - name: "Model preference"
+      query: "count by (model) (otel_claude_code_token_usage_tokens_total)"
+
+  alerts:
+    - name: "High cost rate"
+      query: "rate(otel_claude_code_cost_usage_USD_total[5m]) * 86400 > 10"
+      description: "Alert if daily cost projection exceeds $10"
+    
+    - name: "Unusual token usage"
+      query: "rate(otel_claude_code_token_usage_tokens_total[5m]) > 1000"
+      description: "Alert on high token consumption rate"

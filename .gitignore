@@ -1,0 +1,8 @@
+*.pyc
+__pycache__/
+.env
+exports/*.json
+exports/*.csv
+.DS_Store
+venv/
+.direnv/

@@ -1,0 +1,45 @@
+#+TITLE: Claude Code Metrics Lab Setup
+
+* Prerequisites
+- Working OTEL infrastructure (see pi-setup/opentelemetry.org)
+- Prometheus and Grafana running
+- Claude Code with telemetry enabled
+
+* Installation
+
+1. Clone the repository:
+   #+begin_src bash
+   cd ~/projects/aygp-dr
+   git clone [repo-url] claude-code-metrics-lab
+   cd claude-code-metrics-lab
+   #+end_src
+
+2. Install Python dependencies:
+   #+begin_src bash
+   pip3 install -r requirements.txt
+   #+end_src
+
+3. Import Grafana dashboards:
+   - Open Grafana (http://pi.lan:3000)
+   - Import dashboards from =dashboards/= directory
+
+4. Run initial analysis:
+   #+begin_src bash
+   python3 src/project_metrics.py
+   python3 src/cost_analyzer.py
+   python3 src/session_analyzer.py
+   #+end_src
+
+* Usage
+
+** Automated Reports
+Set up a cron job for daily reports:
+#+begin_src bash
+0 9 * * * cd /home/aygp-dr/projects/aygp-dr/claude-code-metrics-lab && python3 src/project_metrics.py
+#+end_src
+
+** Manual Analysis
+Run any script in =src/= for on-demand analysis.
+
+** Custom Queries
+Use queries from =queries/useful-queries.yaml= in Prometheus or Grafana.
