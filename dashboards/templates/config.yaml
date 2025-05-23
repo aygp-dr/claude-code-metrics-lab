@@ -1,0 +1,53 @@
+# Dashboard Template Configuration
+# Variables for customizing Grafana dashboards
+
+# Project Configuration
+PROJECT_NAME: "Claude Code Metrics Lab"
+PROJECT_TAG: "claude-metrics"
+
+# Metrics Configuration
+METRICS_PREFIX: "otel_claude_code"
+GRAFANA_VERSION: "10.0.0"
+
+# Dashboard Settings
+DASHBOARD_STYLE: "dark"
+REFRESH_INTERVAL: "30s"
+TIMEZONE: "browser"
+
+# Default Time Range
+DEFAULT_TIME_FROM: "now-24h"
+DEFAULT_TIME_TO: "now"
+DEFAULT_TIME_RANGE: "Last 24h"
+
+# Cost Thresholds (USD)
+COST_WARNING_THRESHOLD: 10.0
+COST_CRITICAL_THRESHOLD: 25.0
+MONTHLY_WARNING_THRESHOLD: 100.0
+MONTHLY_CRITICAL_THRESHOLD: 250.0
+
+# Visual Settings
+PROJECTION_COLOR: "blue"
+
+# Dashboard UIDs (must be unique)
+DASHBOARD_UIDS:
+  overview: "claude-overview"
+  cost: "claude-cost-tracking"
+  efficiency: "claude-efficiency"
+  project: "claude-project-tracking"
+
+# Environment-specific Overrides
+environments:
+  development:
+    COST_WARNING_THRESHOLD: 5.0
+    COST_CRITICAL_THRESHOLD: 15.0
+    REFRESH_INTERVAL: "10s"
+  
+  production:
+    COST_WARNING_THRESHOLD: 50.0
+    COST_CRITICAL_THRESHOLD: 100.0
+    REFRESH_INTERVAL: "1m"
+    DASHBOARD_STYLE: "light"
+  
+  staging:
+    PROJECT_NAME: "Claude Metrics [STAGING]"
+    METRICS_PREFIX: "otel_claude_code_staging"

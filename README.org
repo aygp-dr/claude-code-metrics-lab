@@ -64,6 +64,19 @@ python3 src/session_analyzer.py
 make tangle
 #+end_src
 
+** Dashboard Generation
+#+begin_src bash
+# Generate Grafana dashboards from templates
+make dashboards
+
+# Generate for specific environments
+make dashboards-dev    # Development settings
+make dashboards-prod   # Production settings
+
+# Manual generation with options
+uv run python scripts/generate_dashboards.py --environment staging
+#+end_src
+
 * Requirements
 - Python 3.8+
 - OpenTelemetry infrastructure
