@@ -1,0 +1,639 @@
+#+TITLE: HTTP Telemetry Interceptor - Educational Requirements
+#+AUTHOR: Educational Design Team
+#+DATE: 2025-05-24
+#+OPTIONS: toc:2 num:t
+
+* Executive Summary
+
+This document outlines the educational requirements for implementing an HTTP-based telemetry interceptor for OpenTelemetry Protocol (OTLP) JSON data. Students will build their own "mitmproxy for telemetry" - a transparent HTTP proxy that intercepts, logs, analyzes, and forwards telemetry data while maintaining complete transparency to both clients and servers.
+
+* Learning Objectives
+
+Upon completing this project, students will understand:
+
+1. **HTTP Middleware Patterns** - How request/response chains work
+2. **Transparent Interception** - Building invisible proxies like mitmproxy
+3. **Telemetry Protocols** - Understanding OTLP/JSON structure
+4. **Observability of Observability** - Meta-monitoring concepts
+5. **Data Pipeline Construction** - Building analysis systems
+
+* Conceptual Foundation
+
+** Familiar Patterns: HTTP Middleware Chains
+
+Students likely know these patterns already:
+
+#+begin_src mermaid :file middleware-chain-concept.png :mkdirp yes
+graph LR
+    subgraph "Express.js Middleware"
+        REQ1[Request] --> MW1[Logger]
+        MW1 --> MW2[Auth]
+        MW2 --> MW3[Handler]
+        MW3 --> RES1[Response]
+    end
+    
+    subgraph "Ring Handlers (Clojure)"
+        REQ2[Request] --> H1[wrap-logger]
+        H1 --> H2[wrap-auth]
+        H2 --> H3[handler]
+        H3 --> RES2[Response]
+    end
+    
+    subgraph "Our Telemetry Interceptor"
+        REQ3[OTLP Request] --> I1[Log]
+        I1 --> I2[Analyze]
+        I2 --> I3[Store]
+        I3 --> I4[Forward]
+        I4 --> RES3[Response]
+    end
+#+end_src
+
+** The mitmproxy Mental Model
+
+Like mitmproxy (man-in-the-middle proxy):
+- Sits between client and server
+- Completely transparent
+- Can inspect all traffic
+- Can log/modify/analyze
+- Neither side knows it exists
+
+Our telemetry interceptor is essentially "mitmproxy for OTLP":
+- Intercepts telemetry instead of web traffic
+- Provides visibility into observability data
+- Educational tool for understanding protocols
+
+** From Riedesel's "Software Telemetry"
+
+Key concepts we're implementing:
+- **Chapter 3**: Collection Patterns - Push-based telemetry
+- **Chapter 5**: Data Formats - Structured JSON telemetry
+- **Chapter 7**: Processing Pipelines - Stream processing
+- **Chapter 12**: Meta-monitoring - Observing the observers
+
+* Architecture Overview
+
+#+begin_src mermaid :file interceptor-architecture.png :mkdirp yes
+graph TB
+    subgraph "Existing System"
+        APP[Application<br/>with OTel SDK] 
+        GRAFANA[Grafana Dashboard]
+        COLLECTOR[OTLP Collector]
+        
+        APP -->|"OTLP/HTTP"| COLLECTOR
+        COLLECTOR --> GRAFANA
+    end
+    
+    subgraph "With Interceptor"
+        APP2[Application<br/>with OTel SDK]
+        INTERCEPTOR[Your HTTP<br/>Interceptor]
+        CONSOLE[Console Logs]
+        STORAGE[(JSON/SQLite<br/>Storage)]
+        ANALYSIS[Analysis<br/>Module]
+        
+        APP2 -->|"1. OTLP/HTTP"| INTERCEPTOR
+        INTERCEPTOR --> CONSOLE
+        INTERCEPTOR --> STORAGE
+        INTERCEPTOR --> ANALYSIS
+        INTERCEPTOR -->|"2. Forward"| COLLECTOR
+    end
+    
+    style INTERCEPTOR fill:#f9f,stroke:#333,stroke-width:4px
+#+end_src
+
+* HTTP/JSON Protocol Details
+
+** OTLP/HTTP Endpoints
+
+The interceptor must handle these HTTP endpoints:
+
+| Path | Method | Content-Type | Description |
+|------|--------|--------------|-------------|
+| `/v1/traces` | POST | application/json | Trace telemetry |
+| `/v1/metrics` | POST | application/json | Metric telemetry |
+| `/v1/logs` | POST | application/json | Log telemetry |
+
+** OTLP/JSON Structure
+
+Example trace request structure:
+#+begin_src json :tangle example-otlp-trace.json :mkdirp yes
+{
+  "resourceSpans": [{
+    "resource": {
+      "attributes": [{
+        "key": "service.name",
+        "value": { "stringValue": "my-service" }
+      }, {
+        "key": "service.version",
+        "value": { "stringValue": "1.0.0" }
+      }]
+    },
+    "scopeSpans": [{
+      "scope": {
+        "name": "my-instrumentation-library",
+        "version": "1.0"
+      },
+      "spans": [{
+        "traceId": "5B8EFFF798038103D269B633813FC60C",
+        "spanId": "EEE19B7EC3C1B174",
+        "name": "GET /api/users",
+        "startTimeUnixNano": "1544712660000000000",
+        "endTimeUnixNano": "1544712661000000000",
+        "attributes": [{
+          "key": "http.method",
+          "value": { "stringValue": "GET" }
+        }]
+      }]
+    }]
+  }]
+}
+#+end_src
+
+* Configuration Schema
+
+Language-agnostic JSON configuration:
+
+#+begin_src json :tangle interceptor-config-schema.json :mkdirp yes
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Telemetry Interceptor Configuration",
+  "type": "object",
+  "required": ["interceptor", "upstream", "storage", "logging"],
+  "properties": {
+    "interceptor": {
+      "type": "object",
+      "description": "HTTP server configuration",
+      "properties": {
+        "port": {
+          "type": "integer",
+          "default": 4318,
+          "description": "HTTP port to listen on"
+        },
+        "host": {
+          "type": "string",
+          "default": "localhost",
+          "description": "Host to bind to"
+        }
+      }
+    },
+    "upstream": {
+      "type": "object",
+      "description": "Where to forward telemetry",
+      "required": ["endpoint"],
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "description": "Upstream OTLP/HTTP endpoint",
+          "examples": ["http://localhost:14318", "http://collector:4318"]
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "default": 5000,
+          "description": "Forward timeout in milliseconds"
+        },
+        "preserve_headers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["Authorization", "X-Trace-Id"],
+          "description": "Headers to preserve when forwarding"
+        }
+      }
+    },
+    "storage": {
+      "type": "object",
+      "description": "How to store intercepted data",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["memory", "json_file", "sqlite"],
+          "default": "json_file",
+          "description": "Storage backend"
+        },
+        "path": {
+          "type": "string",
+          "default": "./telemetry-intercepts.json",
+          "description": "Path for file-based storage"
+        },
+        "max_entries": {
+          "type": "integer",
+          "default": 1000,
+          "description": "Maximum entries to keep"
+        }
+      }
+    },
+    "logging": {
+      "type": "object",
+      "description": "Console output configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "format": {
+          "type": "string",
+          "enum": ["compact", "pretty", "json"],
+          "default": "pretty",
+          "description": "How to format console output"
+        },
+        "include_payload": {
+          "type": "boolean",
+          "default": false,
+          "description": "Log full request payload"
+        },
+        "highlight": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["service.name", "http.method", "error"],
+          "description": "Attributes to highlight in logs"
+        }
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "description": "Real-time analysis configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "modules": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["service_map", "error_rate", "latency_histogram", "attribute_cardinality"]
+          },
+          "default": ["service_map", "error_rate"],
+          "description": "Analysis modules to run"
+        }
+      }
+    }
+  }
+}
+#+end_src
+
+* Implementation Patterns
+
+** Pattern 1: Simple Request Handler Chain
+
+Like Express.js middleware:
+```
+request → log → analyze → store → forward → response
+```
+
+** Pattern 2: Ring-style Handlers (Functional)
+
+Like Clojure Ring:
+```
+(-> handler
+    (wrap-logger)
+    (wrap-analyzer)
+    (wrap-storage)
+    (wrap-forwarder))
+```
+
+** Pattern 3: Pipeline Pattern
+
+Like Unix pipes:
+```
+intercept | tee console | analyze | store | forward
+```
+
+* Educational Exercises
+
+** Exercise 1: Transparent Proxy Proof
+Build the simplest possible transparent proxy:
+1. Accept HTTP request on port 4318
+2. Forward exactly to upstream
+3. Return response unchanged
+4. Verify with `diff` that nothing changed
+
+** Exercise 2: Request Inspection
+Without modifying the flow:
+1. Parse JSON payload
+2. Extract service name
+3. Count spans/metrics/logs
+4. Print summary to console
+
+** Exercise 3: mitmproxy-style Logging
+Create formatted console output like:
+```
+[2024-05-24 10:23:45] TRACE /v1/traces
+  Service: frontend-service v1.2.3
+  Spans: 15
+  Duration: 234ms
+  Trace ID: 5B8EFFF798038103D269B633813FC60C
+  → Forwarded to http://collector:4318 (OK 200)
+```
+
+** Exercise 4: Build Analysis Modules
+Implement pluggable analyzers:
+1. **Service Map**: Track service dependencies
+2. **Error Detector**: Find failed operations
+3. **Latency Analyzer**: Calculate percentiles
+4. **Cardinality Checker**: Detect high-cardinality attributes
+
+** Exercise 5: Storage Strategies
+Compare different approaches:
+1. **Memory**: Ring buffer of last N requests
+2. **JSON File**: Append-only log file
+3. **SQLite**: Structured queries
+4. **Custom**: Your own format
+
+* Testing Your Interceptor
+
+** Step 1: Baseline Without Interceptor
+```bash
+# Your app sends to collector directly
+App (port 8080) → Collector (port 4318) → Grafana
+
+# Verify metrics appear in Grafana
+```
+
+** Step 2: Insert Your Interceptor
+```bash
+# Start your interceptor on port 4318
+# Point it upstream to collector on port 14318
+
+App (port 8080) → Interceptor (port 4318) → Collector (port 14318) → Grafana
+
+# Verify:
+# 1. Metrics still appear in Grafana (transparency works)
+# 2. Your console shows intercepted data
+# 3. Your storage contains telemetry
+```
+
+** Step 3: Test with Real OTLP Data
+```bash
+# Use curl to send test data
+curl -X POST http://localhost:4318/v1/traces \
+  -H "Content-Type: application/json" \
+  -d @example-otlp-trace.json
+
+# Use opentelemetry-cli
+otel-cli span --endpoint http://localhost:4318 \
+  --service "test-service" \
+  --name "test-operation"
+```
+
+* Assessment Rubric
+
+Students demonstrate understanding by:
+
+1. **Transparency** (20%)
+   - Interceptor doesn't break existing telemetry flow
+   - Grafana still receives all data
+   - No data modification unless intentional
+
+2. **Protocol Understanding** (20%)
+   - Can explain OTLP/JSON structure
+   - Correctly parses all three signal types
+   - Handles malformed requests gracefully
+
+3. **Pattern Implementation** (20%)
+   - Clean middleware/handler chain
+   - Separation of concerns
+   - Pluggable architecture
+
+4. **Analysis Capabilities** (20%)
+   - Extracts meaningful insights
+   - Implements at least 2 analysis modules
+   - Can answer questions about traffic
+
+5. **Storage & Querying** (20%)
+   - Stores data efficiently
+   - Can query historical data
+   - Implements retention policy
+
+* Common Pitfalls to Avoid
+
+1. **Breaking Transparency**
+   - Modifying request headers incorrectly
+   - Not preserving HTTP status codes
+   - Changing response timing
+
+2. **Blocking the Pipeline**
+   - Synchronous storage operations
+   - Long analysis computations
+   - Not handling errors gracefully
+
+3. **Memory Leaks**
+   - Storing everything forever
+   - Not implementing limits
+   - Keeping references to large payloads
+
+* References and Inspiration
+
+** Similar Tools
+1. **mitmproxy** - Transparent HTTP/HTTPS proxy
+2. **Burp Suite** - Web security testing proxy
+3. **Charles Proxy** - HTTP debugging proxy
+4. **Fiddler** - Web debugging proxy
+
+** Middleware Patterns
+1. **Express.js** - Node.js middleware
+2. **Ring** - Clojure HTTP middleware
+3. **Rack** - Ruby web server interface
+4. **Django Middleware** - Python request/response processing
+
+** Reading
+1. Riedesel, J. (2021). "Software Telemetry" - Chapters 3, 5, 7, 12
+2. OpenTelemetry Protocol Specification (JSON mappings)
+3. HTTP/1.1 Specification (RFC 7230-7235)
+
+* Appendix: Minimal Example in Elisp
+
+This interceptor simulation can be run directly in Emacs with =C-c C-c= on each code block.
+
+** Sample OTLP Data
+#+begin_src elisp :results silent
+(setq sample-otlp-request
+  '((path . "/v1/metrics")
+    (method . "POST")
+    (headers . ((Content-Type . "application/json")
+                (Authorization . "Bearer test-token")))
+    (body . ((resourceMetrics . [((resource . ((attributes . [((key . "service.name")
+                                                               (value . ((stringValue . "claude-code"))))
+                                                              ((key . "service.version") 
+                                                               (value . ((stringValue . "1.0.0"))))])))
+                                  (scopeMetrics . [((scope . ((name . "otel-python")))
+                                                    (metrics . [((name . "request_count")
+                                                                 (unit . "1")
+                                                                 (sum . ((dataPoints . [((asInt . "42"))]))))]))]))])))))
+#+end_src
+
+** Storage (In-Memory)
+#+begin_src elisp :results silent
+(setq interceptor-storage '())
+(setq interceptor-counter 0)
+#+end_src
+
+** Core Interceptor Functions
+#+begin_src elisp :results output
+(defun extract-service-name (otlp-body)
+  "Extract service name from OTLP telemetry data."
+  (let* ((resource-metrics (alist-get 'resourceMetrics otlp-body))
+         (first-rm (aref resource-metrics 0))
+         (resource (alist-get 'resource first-rm))
+         (attributes (alist-get 'attributes resource)))
+    (seq-find (lambda (attr)
+                (string= (alist-get 'key attr) "service.name"))
+              attributes)))
+
+(defun format-timestamp ()
+  "Get current timestamp in readable format."
+  (format-time-string "%Y-%m-%d %H:%M:%S"))
+
+(defun log-telemetry (request)
+  "Log incoming telemetry request to Messages buffer."
+  (let* ((path (alist-get 'path request))
+         (service-attr (extract-service-name (alist-get 'body request)))
+         (service-name (if service-attr 
+                          (alist-get 'stringValue (alist-get 'value service-attr))
+                        "unknown")))
+    (message "\n%s[%s] %s %s\n  📊 Service: %s"
+             (propertize "═══════════════════════════════" 'face 'bold)
+             (format-timestamp)
+             (alist-get 'method request)
+             path
+             service-name)))
+
+(defun analyze-telemetry (request)
+  "Analyze telemetry data and return insights."
+  (let* ((body (alist-get 'body request))
+         (resource-metrics (alist-get 'resourceMetrics body))
+         (metric-count 0)
+         (service-attr (extract-service-name body))
+         (service-name (if service-attr
+                          (alist-get 'stringValue (alist-get 'value service-attr))
+                        "unknown")))
+    ;; Count metrics
+    (dolist (rm (append resource-metrics nil))
+      (dolist (sm (append (alist-get 'scopeMetrics rm) nil))
+        (setq metric-count (+ metric-count 
+                             (length (alist-get 'metrics sm))))))
+    
+    `((service . ,service-name)
+      (metric-count . ,metric-count)
+      (timestamp . ,(format-timestamp))
+      (path . ,(alist-get 'path request)))))
+
+(defun store-telemetry (request analysis)
+  "Store telemetry data and analysis results."
+  (setq interceptor-counter (1+ interceptor-counter))
+  (push `((id . ,interceptor-counter)
+          (timestamp . ,(alist-get 'timestamp analysis))
+          (request . ,request)
+          (analysis . ,analysis))
+        interceptor-storage)
+  (message "  💾 Stored as entry #%d" interceptor-counter))
+
+(defun forward-telemetry (request upstream-url)
+  "Simulate forwarding to upstream collector."
+  (message "  📡 Forwarding to %s%s" 
+           upstream-url 
+           (alist-get 'path request))
+  ;; In real implementation, would make HTTP request here
+  '((status . 200)
+    (body . ((partialSuccess . nil)))))
+
+(defun intercept-request (request &optional upstream-url)
+  "Main interceptor function - processes OTLP request."
+  (let* ((upstream (or upstream-url "http://collector:14318"))
+         (analysis (analyze-telemetry request))
+         (response nil))
+    
+    ;; 1. Log what we received
+    (log-telemetry request)
+    
+    ;; 2. Analyze the telemetry  
+    (message "  🔍 Metrics found: %d" (alist-get 'metric-count analysis))
+    
+    ;; 3. Store for analysis
+    (store-telemetry request analysis)
+    
+    ;; 4. Forward to real collector
+    (setq response (forward-telemetry request upstream))
+    
+    ;; 5. Return response
+    (message "  ✅ Response: %s\n" 
+             (if (= 200 (alist-get 'status response))
+                 "200 OK"
+               (format "%d" (alist-get 'status response))))
+    
+    response))
+
+;; Run the interceptor with sample data
+(intercept-request sample-otlp-request)
+#+end_src
+
+** Query Stored Data
+#+begin_src elisp :results output
+(defun query-storage (service-name)
+  "Query interceptor storage for specific service."
+  (let ((matches (seq-filter 
+                  (lambda (entry)
+                    (string= service-name 
+                            (alist-get 'service (alist-get 'analysis entry))))
+                  interceptor-storage)))
+    (message "\n🔍 Found %d entries for service '%s':" 
+             (length matches) service-name)
+    (dolist (entry matches)
+      (message "  • Entry #%d at %s - %d metrics"
+               (alist-get 'id entry)
+               (alist-get 'timestamp (alist-get 'analysis entry))
+               (alist-get 'metric-count (alist-get 'analysis entry))))))
+
+;; Query for our test service
+(query-storage "claude-code")
+#+end_src
+
+** Pretty Print Storage
+#+begin_src elisp :results output
+(defun show-interceptor-summary ()
+  "Display summary of intercepted telemetry."
+  (message "\n📊 Interceptor Summary")
+  (message "══════════════════════")
+  (message "Total requests: %d" (length interceptor-storage))
+  
+  ;; Group by service
+  (let ((services (make-hash-table :test 'equal)))
+    (dolist (entry interceptor-storage)
+      (let* ((service (alist-get 'service (alist-get 'analysis entry)))
+             (count (gethash service services 0)))
+        (puthash service (1+ count) services)))
+    
+    (message "\nRequests by service:")
+    (maphash (lambda (service count)
+               (message "  • %s: %d requests" service count))
+             services)))
+
+(show-interceptor-summary)
+#+end_src
+
+** Simulate Multiple Requests
+#+begin_src elisp :results output
+;; Create different types of requests
+(let ((requests (list
+                 sample-otlp-request
+                 '((path . "/v1/traces")
+                   (method . "POST")
+                   (headers . ((Content-Type . "application/json")))
+                   (body . ((resourceTraces . [((resource . ((attributes . [((key . "service.name")
+                                                                             (value . ((stringValue . "frontend"))))]))))]))))
+                 '((path . "/v1/logs")
+                   (method . "POST")
+                   (headers . ((Content-Type . "application/json")))
+                   (body . ((resourceLogs . [((resource . ((attributes . [((key . "service.name")
+                                                                           (value . ((stringValue . "auth-service"))))]))))])))))))
+  (dolist (req requests)
+    (intercept-request req)
+    (sit-for 0.5))) ; Small delay between requests
+
+(show-interceptor-summary)
+#+end_src
+
+** Reset Storage
+#+begin_src elisp :results output
+(setq interceptor-storage '())
+(setq interceptor-counter 0)
+(message "🧹 Storage cleared!")
+#+end_src

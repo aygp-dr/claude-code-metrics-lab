@@ -1,0 +1,213 @@
+#+TITLE: Netcat OTLP Workshop Exercises
+#+AUTHOR: OTLP Learning Lab
+#+DATE: 2025-05-24
+#+OPTIONS: toc:2 num:t
+#+PROPERTY: header-args :results output :exports both
+
+* Overview
+
+Learn OTLP/HTTP protocol internals using simple netcat commands before building complex proxies. These exercises progressively build understanding from raw protocol observation to real-time analysis.
+
+* Prerequisites
+
+#+begin_src bash :dir /tmp
+# Verify tools are installed
+which nc jq tee csplit
+#+end_src
+
+* Exercise 1: Basic Capture and Decode
+
+Capture raw OTLP traffic and examine its structure.
+
+#+begin_src bash :dir /tmp
+# Terminal 1: Start capture
+nc -l 14318 > raw-otlp-1.txt
+
+# Terminal 2: Configure Claude Code
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:14318
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/json
+claude-code "write hello world"
+
+# After capture completes (Ctrl+C in Terminal 1)
+#+end_src
+
+** Examine HTTP Headers
+#+begin_src bash :dir /tmp
+head -20 raw-otlp-1.txt
+#+end_src
+
+** Extract JSON Payload
+#+begin_src bash :dir /tmp
+sed -n '/^{/,/^}/p' raw-otlp-1.txt > payload-1.json
+jq . payload-1.json
+#+end_src
+
+* Exercise 2: Multi-Request Capture
+
+Capture multiple metric exports over time.
+
+#+begin_src bash :dir /tmp
+# Capture for 30 seconds
+timeout 30 nc -l 14318 | tee multi-capture.log
+#+end_src
+
+** Analysis Commands
+#+begin_src bash :dir /tmp
+# Count requests
+grep -c "POST /v1/metrics" multi-capture.log
+
+# Extract all JSON payloads
+awk '/^{/{p=1} p; /^}/{print "---SEPARATOR---"; p=0}' multi-capture.log > all-payloads.txt
+
+# Split into individual files
+csplit all-payloads.txt '/---SEPARATOR---/' '{*}'
+#+end_src
+
+* Exercise 3: Real-time Analysis Pipeline
+
+Process OTLP data as it arrives.
+
+** Terminal 1: Netcat with Processing
+#+begin_src bash :dir /tmp :eval no
+nc -l 14318 | while IFS= read -r line; do
+    echo "$line" | tee -a capture.log
+    if [[ "$line" =~ ^{ ]]; then
+        echo "📊 [$(date +%H:%M:%S)] Metrics received!"
+    fi
+done
+#+end_src
+
+** Terminal 2: Watch for Specific Metrics  
+#+begin_src bash :dir /tmp :eval no
+tail -f capture.log | grep -E "(service\.name|tokens|duration)"
+#+end_src
+
+* Exercise 4: Transparent Forwarding
+
+Capture, log, AND forward to real collector.
+
+#+begin_src bash :dir /tmp :eval no
+# This creates a transparent tap
+nc -l 14318 | tee otlp-intercept.log | nc pi.lan 4318
+#+end_src
+
+* Exercise 5: Real-time Metrics Extraction
+
+Build a one-liner analysis tool.
+
+#+begin_src bash :dir /tmp :eval no
+nc -l 14318 | while IFS= read -r line; do
+    if [[ "$line" =~ ^{ ]]; then
+        echo "$line" | jq -r '
+            .resourceMetrics[].scopeMetrics[].metrics[] | 
+            "\(.name): \(.sum.dataPoints[0].asInt // .gauge.dataPoints[0].asDouble // "N/A")"
+        ' 2>/dev/null
+    fi
+done
+#+end_src
+
+* Exercise 6: Telemetry Detective
+
+Compare metrics from different Claude Code operations.
+
+#+begin_src bash :dir /tmp :async
+# Test 1: Simple Command
+echo "=== Test 1: Simple Command ===" > experiments.log
+nc -l 14318 >> experiments.log &
+NC_PID=$!
+claude-code "hello"
+sleep 15
+kill $NC_PID 2>/dev/null
+
+# Test 2: Complex Command
+echo "=== Test 2: Complex Command ===" >> experiments.log  
+nc -l 14318 >> experiments.log &
+NC_PID=$!
+claude-code "write a recursive fibonacci function with memoization"
+sleep 15
+kill $NC_PID 2>/dev/null
+#+end_src
+
+** Compare Token Usage
+#+begin_src bash :dir /tmp
+# Extract token metrics from simple command
+echo "Simple command tokens:"
+grep -A50 "Test 1" experiments.log | sed -n '/^{/,/^}/p' | \
+  jq '.resourceMetrics[].scopeMetrics[].metrics[] | select(.name | contains("token"))'
+
+# Extract token metrics from complex command  
+echo "Complex command tokens:"
+grep -A50 "Test 2" experiments.log | sed -n '/^{/,/^}/p' | \
+  jq '.resourceMetrics[].scopeMetrics[].metrics[] | select(.name | contains("token"))'
+#+end_src
+
+* Exercise 7: Mock OTLP Collector
+
+Create a fake collector for testing.
+
+#+begin_src bash :dir /tmp :eval no
+# Always responds "200 OK"
+while true; do
+    echo -e "HTTP/1.1 200 OK\r\nContent-Length: 21\r\n\r\n{\"partialSuccess\":{}}" | \
+    nc -l 14318 | tee -a mock-collector.log
+done
+#+end_src
+
+* Bonus: ASCII Visualization
+
+Create a simple token usage bar chart.
+
+#+begin_src bash :dir /tmp :eval no
+nc -l 14318 | while IFS= read -r line; do
+    if [[ "$line" =~ ^{ ]]; then
+        TOKENS=$(echo "$line" | jq -r '
+            .resourceMetrics[].scopeMetrics[].metrics[] | 
+            select(.name | contains("token")) | 
+            .sum.dataPoints[0].asInt' 2>/dev/null | head -1)
+        
+        if [[ -n "$TOKENS" ]]; then
+            echo -n "Tokens used: $TOKENS "
+            perl -E "say '█' x ($TOKENS/1000)"
+        fi
+    fi
+done
+#+end_src
+
+* Key Learnings
+
+After completing these exercises, students should understand:
+
+1. [ ] OTLP/HTTP protocol structure (headers + JSON body)
+2. [ ] Resource attributes and metric types
+3. [ ] How to parse and analyze telemetry data
+4. [ ] Transparent forwarding patterns
+5. [ ] Real-time stream processing concepts
+
+* Next Steps
+
+- Build a proper intercepting proxy in your language of choice
+- Add persistent storage for captured metrics
+- Create analysis dashboards from intercepted data
+- Implement metric aggregation and alerting
+
+* Troubleshooting
+
+** No data appearing?
+#+begin_src bash
+# Check Claude Code environment
+env | grep OTEL
+
+# Verify endpoint
+curl -X POST http://localhost:14318/v1/metrics \
+  -H "Content-Type: application/json" \
+  -d '{"test": "connection"}'
+#+end_src
+
+** JSON parse errors?
+#+begin_src bash
+# Validate JSON
+cat payload.json | jq empty
+
+# Check for complete JSON
+tail -5 payload.json
+#+end_src

@@ -1,0 +1,28 @@
+{
+  "resourceMetrics": [{
+    "resource": {
+      "attributes": [{
+        "key": "service.name",
+        "value": { "stringValue": "test-service" }
+      }]
+    },
+    "scopeMetrics": [{
+      "scope": {
+        "name": "test-scope"
+      },
+      "metrics": [{
+        "name": "test.counter",
+        "unit": "1",
+        "sum": {
+          "dataPoints": [{
+            "startTimeUnixNano": "1748114014000000000",
+            "timeUnixNano": "1748114014000000000",
+            "asInt": "42"
+          }],
+          "aggregationTemporality": 2,
+          "isMonotonic": true
+        }
+      }]
+    }]
+  }]
+}

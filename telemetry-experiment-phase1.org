@@ -1,0 +1,165 @@
+#+TITLE: Claude Code Metrics Lab - Phase 1 Experiment Overview
+#+AUTHOR: aygp-dr
+#+DATE: 2025-01-24
+#+PROPERTY: header-args :mkdirp yes
+
+* Executive Summary
+
+This document chronicles the first 24-hour telemetry experiment measuring real-world costs of autonomous AI operations across 60+ repositories. The experiment revealed a 2,000x cost variance ($0.0007-$1.44 per operation) and captured the first production telemetry data for Claude Opus 4 following its May 22, 2025 announcement.
+
+*Suggested filename*: ~TELEMETRY_EXPERIMENT_PHASE1.org~
+
+* Experiment Timeline
+
+** May 23, 2025 (Setup Day)
+- *14:00-17:00*: Initial lab setup, Grafana dashboard creation
+- *17:00-22:00*: Dashboard iterations, discovered telemetry implementation
+- *22:00-23:59*: Manual cost testing, discovered Opus 4 activation
+
+** May 24, 2025 (Data Collection)
+- *00:00-02:00*: Initial harness deployment (v1-v7)
+  - JSON parsing errors
+  - Path resolution issues  
+  - First $1.44 operation logged
+- *02:00-04:00*: Dashboard debugging
+  - Issues #7, #8, #9 documented
+  - Query inconsistencies discovered
+- *04:00-12:00*: Overnight autonomous run
+  - v8.2 with repo shuffling deployed
+  - $27.81 spent across 588 operations
+  - Daily limit triggered at $25
+
+* Options Considered
+
+** 1. Testing Approaches
+- ❌ *Synthetic data generation*: Rejected - needed real cost variance
+- ❌ *Single repo testing*: Rejected - insufficient variety
+- ✅ *Multi-repo shuffled sampling*: Selected - revealed true cost distribution
+
+** 2. Safety Mechanisms
+- ✅ *Daily spend limit*: $25 (raised to $50 for extended testing)
+- ✅ *Repository shuffling*: Prevent expensive repo loops
+- ✅ *5-minute delays*: Rate limiting between operations
+- ✅ *Public repos only*: Minimize data exposure risk
+
+** 3. Dashboard Designs
+- ❌ *Binary indicators*: Failed for continuous operations
+- ❌ *Per-second rates*: Unrealistic for most organizations
+- ✅ *Hourly aggregations*: Appropriate scale for AI operations
+
+* Key Discoveries
+
+** Cost Distribution
+#+BEGIN_SRC text
+Min:  $0.0007 (Haiku simple tasks)
+Avg:  $0.47   (Mixed operations)  
+Max:  $1.44   (5dgai-intensive)
+#+END_SRC
+
+** Model Selection Patterns
+- *Haiku (3.5)*: Simple file checks, <1K tokens
+- *Sonnet (3.7)*: Standard documentation sync, ~10K tokens
+- *Opus 4*: Complex analysis, Makefile creation, >40K tokens
+
+** Telemetry Gaps
+1. Session/Commit counters not incrementing properly
+2. Model filtering in token usage queries
+3. Scale issues (46K tokens displayed as 6K max)
+
+* Phase 1 Lessons Learned
+
+1. *Cost Unpredictability*: Simple-looking repos can trigger Opus 4 ($1.26)
+2. *Cache Behavior*: Model transitions disrupt cache efficiency
+3. *Dashboard Anti-patterns*: Binary metrics useless for automation
+4. *Real vs Synthetic*: Production behavior differs significantly from theory
+
+* Phase 2 Recommendations
+
+** For Lab Users
+1. *Start with lower limits*: $10/day until cost patterns understood
+2. *Use repo allowlists*: Don't shuffle through unknown repos
+3. *Monitor model selection*: Opus 4 activation is expensive
+4. *Export metrics frequently*: JSONL format for analysis
+
+** For Dashboard Development
+#+BEGIN_SRC json
+// Key fixes needed in dashboard JSON:
+{
+  "total_sessions": "sum(increase(otel_claude_code_session_count_total[$__range]))",
+  "total_commits": "sum(increase(otel_claude_code_commit_count_total[$__range]))",
+  "token_scale": "logarithmic",
+  "model_visibility": "ensure all models in all panels"
+}
+#+END_SRC
+
+** For Organizations Adopting This Lab
+
+*** Prerequisites
+- OpenTelemetry collector configured
+- Prometheus/Grafana stack
+- Claude API access with telemetry enabled
+- Isolated test repositories
+
+*** Customization Points
+1. *Harness Script* (~scripts/claude-telemetry-harness.sh~):
+   - Adjust ~DAILY_LIMIT~ for budget
+   - Modify ~REPO_DELAY~ for throughput
+   - Customize task prompts for your use case
+
+2. *Dashboard* (~dashboards/grafana-dashboard-v2.json~):
+   - Add organization-specific metrics
+   - Adjust thresholds for your scale
+   - Create custom alerts
+
+3. *Synthetic Testing*:
+   #+BEGIN_SRC python
+   # test_matrix.py can generate synthetic data
+   # Useful for load testing dashboards without API costs
+   #+END_SRC
+
+* Repository Structure for Lab Users
+
+#+BEGIN_SRC text
+claude-code-metrics-lab/
+├── dashboards/          # Grafana JSON exports
+├── scripts/            # Telemetry harness and automation
+├── test_results/       # Your experiment outputs
+├── docs/              # Additional documentation
+└── TELEMETRY_EXPERIMENT_PHASE1.org  # This file
+#+END_SRC
+
+* Ethical Considerations
+
+- *Agent Autonomy*: Pushing to main branches requires careful scoping
+- *Cost Management*: Easy to burn significant budget quickly
+- *Data Privacy*: Ensure test repos contain no sensitive data
+
+* Next Steps
+
+** Phase 2 Goals
+1. Fix session/commit counter instrumentation
+2. Add per-repository cost tracking
+3. Implement predictive cost modeling
+4. Create budget alert automation
+
+** Phase 3 Vision
+- Multi-organization benchmarking
+- Cost optimization recommendations
+- Model selection heuristics
+
+* Contributing
+
+This lab is designed for experimentation. If you discover new patterns:
+1. Document cost anomalies
+2. Share dashboard improvements
+3. Submit harness enhancements
+
+* Citations
+
+- Anthropic "Code with Claude 2025" Event (May 22, 2025)
+- GitHub Issues #1-9 in this repository
+- Original overnight telemetry data (May 24, 2025)
+
+-----
+
+/"The best way to understand AI costs is to accidentally spend $27.81 overnight and have the graphs to prove it."/ - Lab Testing Philosophy

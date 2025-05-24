@@ -1,25 +1,28 @@
-# Telemetry Contracts, APIs, and Specifications
+#+TITLE: Telemetry Contracts, APIs, and Specifications
+#+AUTHOR: aygp-dr
+#+DATE: 2025-01-24
+#+PROPERTY: header-args :mkdirp yes
 
 This document defines the contracts, APIs, and specifications for each component in the Claude Code telemetry system. These specifications enable systematic debugging, validation, and integration testing.
 
-## Table of Contents
+* Table of Contents
 
-1. [Metric Schema Contracts](#metric-schema-contracts)
-2. [Protocol Specifications](#protocol-specifications) 
-3. [Storage Interface Contracts](#storage-interface-contracts)
-4. [Visualization Contracts](#visualization-contracts)
-5. [Validation Specifications](#validation-specifications)
-6. [Error Handling Contracts](#error-handling-contracts)
+1. [[#metric-schema-contracts][Metric Schema Contracts]]
+2. [[#protocol-specifications][Protocol Specifications]] 
+3. [[#storage-interface-contracts][Storage Interface Contracts]]
+4. [[#visualization-contracts][Visualization Contracts]]
+5. [[#validation-specifications][Validation Specifications]]
+6. [[#error-handling-contracts][Error Handling Contracts]]
 
----
+-----
 
-## Metric Schema Contracts
+* Metric Schema Contracts
 
-### Base Metric Structure
+** Base Metric Structure
 
 All Claude Code metrics MUST conform to this base JSON schema:
 
-```json
+#+BEGIN_SRC json
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
@@ -52,13 +55,13 @@ All Claude Code metrics MUST conform to this base JSON schema:
     }
   }
 }
-```
+#+END_SRC
 
-### Specific Metric Contracts
+** Specific Metric Contracts
 
-#### Token Usage Metric
+*** Token Usage Metric
 
-```yaml
+#+BEGIN_SRC yaml
 metric_name: "otel_claude_code_token_usage_tokens_total"
 metric_type: "counter"
 required_labels: ["model", "token_type"]
@@ -73,11 +76,11 @@ validation_rules:
   - session_id SHOULD follow pattern "session-[0-9]+"
 prometheus_help: "Total number of tokens used in Claude Code sessions"
 prometheus_type: "counter"
-```
+#+END_SRC
 
-#### Session Duration Metric
+*** Session Duration Metric
 
-```yaml
+#+BEGIN_SRC yaml
 metric_name: "otel_claude_code_session_duration_seconds"
 metric_type: "histogram"
 required_labels: ["session_id"]
@@ -92,11 +95,11 @@ validation_rules:
 prometheus_help: "Duration of Claude Code sessions in seconds"
 prometheus_type: "histogram"
 buckets: [1, 5, 10, 30, 60, 300, 600, 1800, 3600]
-```
+#+END_SRC
 
-#### Cost Tracking Metric
+*** Cost Tracking Metric
 
-```yaml
+#+BEGIN_SRC yaml
 metric_name: "otel_claude_code_cost_usd"
 metric_type: "gauge"
 required_labels: ["model"]
@@ -111,11 +114,11 @@ validation_rules:
   - billing_period SHOULD be ISO 8601 format
 prometheus_help: "Estimated cost in USD for Claude Code usage"
 prometheus_type: "gauge"
-```
+#+END_SRC
 
-#### Tool Usage Metric
+*** Tool Usage Metric
 
-```yaml
+#+BEGIN_SRC yaml
 metric_name: "otel_claude_code_tool_usage_total"
 metric_type: "counter"
 required_labels: ["tool_name"]
@@ -129,11 +132,11 @@ validation_rules:
   - status MUST be in ["success", "error", "timeout"]
 prometheus_help: "Number of tool invocations in Claude Code sessions"
 prometheus_type: "counter"
-```
+#+END_SRC
 
-#### Error Tracking Metric
+*** Error Tracking Metric
 
-```yaml
+#+BEGIN_SRC yaml
 metric_name: "otel_claude_code_error_total"
 metric_type: "counter"
 required_labels: ["error_type"]
@@ -147,17 +150,17 @@ validation_rules:
   - error_code SHOULD be HTTP status code or application error code
 prometheus_help: "Number of errors encountered in Claude Code sessions"
 prometheus_type: "counter"
-```
+#+END_SRC
 
----
+-----
 
-## Protocol Specifications
+* Protocol Specifications
 
-### OTLP Protocol Contract
+** OTLP Protocol Contract
 
-#### GRPC Interface
+*** GRPC Interface
 
-```protobuf
+#+BEGIN_SRC protobuf
 service MetricsService {
   rpc Export(ExportMetricsServiceRequest) returns (ExportMetricsServiceResponse);
 }
@@ -171,42 +174,42 @@ message ResourceMetrics {
   repeated ScopeMetrics scope_metrics = 2;
   string schema_url = 3;
 }
-```
+#+END_SRC
 
-**Endpoint Configuration:**
-```yaml
+*Endpoint Configuration:*
+#+BEGIN_SRC yaml
 protocol: "grpc"
 endpoint: "http://collector:4317"
 timeout: 30000  # milliseconds
 compression: "gzip"
 headers:
   - "x-honeycomb-team: YOUR_API_KEY"  # for SaaS providers
-```
+#+END_SRC
 
-#### HTTP/Protobuf Interface
+*** HTTP/Protobuf Interface
 
-```yaml
+#+BEGIN_SRC yaml
 method: "POST"
 endpoint: "http://collector:4318/v1/metrics"
 content_type: "application/x-protobuf"
 timeout: 30000
 encoding: "protobuf"
 compression: "gzip"
-```
+#+END_SRC
 
-#### HTTP/JSON Interface
+*** HTTP/JSON Interface
 
-```yaml
+#+BEGIN_SRC yaml
 method: "POST" 
 endpoint: "http://collector:4318/v1/metrics"
 content_type: "application/json"
 timeout: 30000
 encoding: "json"
 max_payload_size: "4MB"
-```
+#+END_SRC
 
-**Example JSON Payload:**
-```json
+*Example JSON Payload:*
+#+BEGIN_SRC json
 {
   "resourceMetrics": [
     {
@@ -245,11 +248,11 @@ max_payload_size: "4MB"
     }
   ]
 }
-```
+#+END_SRC
 
-### Prometheus Exposition Format
+** Prometheus Exposition Format
 
-```prometheus
+#+BEGIN_SRC prometheus
 # HELP otel_claude_code_token_usage_tokens_total Total tokens used in Claude Code sessions
 # TYPE otel_claude_code_token_usage_tokens_total counter
 otel_claude_code_token_usage_tokens_total{model="claude-3-sonnet",token_type="input",session_id="session-001"} 1500 1640995200000
@@ -262,31 +265,31 @@ otel_claude_code_session_duration_seconds_bucket{session_id="session-001",le="10
 otel_claude_code_session_duration_seconds_bucket{session_id="session-001",le="+Inf"} 1
 otel_claude_code_session_duration_seconds_sum{session_id="session-001"} 8.5
 otel_claude_code_session_duration_seconds_count{session_id="session-001"} 1
-```
+#+END_SRC
 
----
+-----
 
-## Storage Interface Contracts
+* Storage Interface Contracts
 
-### Prometheus Query API
+** Prometheus Query API
 
-#### Range Query Interface
+*** Range Query Interface
 
-```http
+#+BEGIN_SRC http
 GET /api/v1/query_range
-```
+#+END_SRC
 
-**Parameters:**
-```yaml
+*Parameters:*
+#+BEGIN_SRC yaml
 query: "otel_claude_code_token_usage_tokens_total"
 start: "2023-01-01T00:00:00Z"  # RFC3339 format
 end: "2023-01-01T23:59:59Z"
 step: "300s"  # 5 minute resolution
 timeout: "30s"
-```
+#+END_SRC
 
-**Response Contract:**
-```json
+*Response Contract:*
+#+BEGIN_SRC json
 {
   "status": "success",
   "data": {
@@ -306,26 +309,26 @@ timeout: "30s"
     ]
   }
 }
-```
+#+END_SRC
 
-#### Instant Query Interface
+*** Instant Query Interface
 
-```http
+#+BEGIN_SRC http
 GET /api/v1/query
-```
+#+END_SRC
 
-**Parameters:**
-```yaml
+*Parameters:*
+#+BEGIN_SRC yaml
 query: "rate(otel_claude_code_token_usage_tokens_total[5m])"
 time: "2023-01-01T12:00:00Z"
 timeout: "30s"
-```
+#+END_SRC
 
-### PromQL Query Contracts
+** PromQL Query Contracts
 
-#### Standard Queries
+*** Standard Queries
 
-```promql
+#+BEGIN_SRC promql
 # Token usage rate per minute
 rate(otel_claude_code_token_usage_tokens_total[1m])
 
@@ -337,15 +340,15 @@ sum by (model) (otel_claude_code_cost_usd)
 
 # Error rate percentage
 rate(otel_claude_code_error_total[5m]) / rate(otel_claude_code_tool_usage_total[5m]) * 100
-```
+#+END_SRC
 
----
+-----
 
-## Visualization Contracts
+* Visualization Contracts
 
-### Grafana Dashboard JSON Model
+** Grafana Dashboard JSON Model
 
-```json
+#+BEGIN_SRC json
 {
   "dashboard": {
     "id": null,
@@ -385,13 +388,13 @@ rate(otel_claude_code_error_total[5m]) / rate(otel_claude_code_tool_usage_total[
     ]
   }
 }
-```
+#+END_SRC
 
-### Panel Specifications
+** Panel Specifications
 
-#### Metric Panel Contract
+*** Metric Panel Contract
 
-```yaml
+#+BEGIN_SRC yaml
 panel_type: "graph"
 required_fields:
   - title
@@ -405,11 +408,11 @@ target_specification:
   expr: "PromQL query string"
   legendFormat: "Template with {{label}} substitutions"
   refId: "Single letter identifier"
-```
+#+END_SRC
 
-#### Alert Rule Contract
+*** Alert Rule Contract
 
-```yaml
+#+BEGIN_SRC yaml
 alert:
   name: "High Token Usage"
   frequency: "10s"
@@ -425,15 +428,15 @@ alert:
   noDataState: "no_data"
   notifications:
     - uid: "slack-notifications"
-```
+#+END_SRC
 
----
+-----
 
-## Validation Specifications
+* Validation Specifications
 
-### Input Validation Contract
+** Input Validation Contract
 
-```yaml
+#+BEGIN_SRC yaml
 validation_levels:
   - schema: "JSON Schema validation"
   - semantic: "Business rule validation"
@@ -453,11 +456,11 @@ performance_validation:
   max_metrics_per_batch: 1000
   max_labels_per_metric: 20
   max_label_value_length: 255
-```
+#+END_SRC
 
-### Protocol Validation Contract
+** Protocol Validation Contract
 
-```yaml
+#+BEGIN_SRC yaml
 otlp_grpc_validation:
   - message_format: "Valid protobuf encoding"
   - compression: "gzip, deflate, or none"
@@ -474,15 +477,15 @@ prometheus_validation:
   - metric_names: "Valid Prometheus metric naming"
   - label_names: "Valid Prometheus label naming"
   - help_text: "Required HELP and TYPE comments"
-```
+#+END_SRC
 
----
+-----
 
-## Error Handling Contracts
+* Error Handling Contracts
 
-### Error Classification
+** Error Classification
 
-```yaml
+#+BEGIN_SRC yaml
 error_categories:
   validation_errors:
     - invalid_schema
@@ -507,13 +510,13 @@ error_categories:
     - expired_token
     - insufficient_permissions
     - rate_limit_exceeded
-```
+#+END_SRC
 
-### Error Response Format
+** Error Response Format
 
-#### OTLP Error Response
+*** OTLP Error Response
 
-```json
+#+BEGIN_SRC json
 {
   "code": 3,  // INVALID_ARGUMENT
   "message": "Invalid metric name format",
@@ -529,11 +532,11 @@ error_categories:
     }
   ]
 }
-```
+#+END_SRC
 
-#### HTTP Error Response
+*** HTTP Error Response
 
-```json
+#+BEGIN_SRC json
 {
   "error": {
     "code": "VALIDATION_ERROR",
@@ -548,11 +551,11 @@ error_categories:
     "timestamp": "2023-01-01T12:00:00Z"
   }
 }
-```
+#+END_SRC
 
-### Retry and Fallback Contract
+** Retry and Fallback Contract
 
-```yaml
+#+BEGIN_SRC yaml
 retry_policy:
   max_attempts: 3
   initial_backoff: "1s"
@@ -572,15 +575,15 @@ fallback_policy:
     - authentication_failure
     - protocol_error
   recovery_check_interval: "60s"
-```
+#+END_SRC
 
----
+-----
 
-## Testing Contracts
+* Testing Contracts
 
-### Test Specification Format
+** Test Specification Format
 
-```yaml
+#+BEGIN_SRC yaml
 test_case:
   name: "Token usage metric validation"
   description: "Verify token usage metric accepts valid input and rejects invalid input"
@@ -608,11 +611,11 @@ test_case:
     - invalid_inputs_rejected: true
     - error_messages_descriptive: true
     - performance_within_limits: true
-```
+#+END_SRC
 
-### Integration Test Contract
+** Integration Test Contract
 
-```yaml
+#+BEGIN_SRC yaml
 integration_test:
   name: "End-to-end telemetry pipeline"
   components:
@@ -634,24 +637,24 @@ integration_test:
     - label_preservation: "Labels maintained through pipeline"
     - timestamp_accuracy: "Timestamps within 1s tolerance"
     - query_performance: "Queries complete within 5s"
-```
+#+END_SRC
 
----
+-----
 
-## Implementation Guidelines
+* Implementation Guidelines
 
-### Contract Validation Implementation
+** Contract Validation Implementation
 
-1. **Schema Validation**: Use JSON Schema libraries to validate metric structure
-2. **Protocol Validation**: Implement protocol-specific validators for OTLP and Prometheus
-3. **Semantic Validation**: Create business rule validators for label consistency and value ranges
-4. **Integration Testing**: Develop end-to-end tests that validate contracts across components
+1. *Schema Validation*: Use JSON Schema libraries to validate metric structure
+2. *Protocol Validation*: Implement protocol-specific validators for OTLP and Prometheus
+3. *Semantic Validation*: Create business rule validators for label consistency and value ranges
+4. *Integration Testing*: Develop end-to-end tests that validate contracts across components
 
-### Debugging with Contracts
+** Debugging with Contracts
 
-1. **Contract Violations**: Log detailed information when contracts are violated
-2. **Validation Tracing**: Track validation results through the pipeline
-3. **Error Correlation**: Link errors back to specific contract violations
-4. **Performance Monitoring**: Measure contract validation overhead
+1. *Contract Violations*: Log detailed information when contracts are violated
+2. *Validation Tracing*: Track validation results through the pipeline
+3. *Error Correlation*: Link errors back to specific contract violations
+4. *Performance Monitoring*: Measure contract validation overhead
 
 This specification provides a comprehensive foundation for implementing, debugging, and maintaining the Claude Code telemetry system with clear contracts at every interface.

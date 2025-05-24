@@ -1,7 +1,6 @@
 #+TITLE: Claude Code Metrics Lab
 #+AUTHOR: aygp-dr
 #+DATE: 2025-05-23
-#+PROPERTY: header-args :mkdirp yes
 
 * Overview
 
@@ -9,7 +8,7 @@ A dedicated lab for tracking, analyzing, and visualizing Claude Code usage metri
 
 * Repository Structure
 
-#+begin_src bash :tangle init-repo.sh :shebang "#!/bin/bash"
+#+begin_src bash :tangle init-repo.sh :mkdirp yes :shebang "#!/bin/bash"
 # Initialize claude-code-metrics-lab repository
 
 mkdir -p claude-code-metrics-lab/{src,dashboards,queries,exports,analysis,docs}
@@ -818,7 +817,7 @@ Use queries from =queries/useful-queries.yaml= in Prometheus or Grafana.
 
 * Requirements File
 
-#+begin_src text :tangle requirements.txt
+#+begin_src text :tangle requirements.txt :mkdirp yes
 requests>=2.31.0
 pandas>=2.0.0
 matplotlib>=3.7.0

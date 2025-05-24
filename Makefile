@@ -1,8 +1,8 @@
-.PHONY: tangle install clean analyze lint simulate simulate-guile simulate-dev test-simulator
+.PHONY: tangle install clean analyze lint simulate simulate-guile simulate-dev test-simulator otlp-debug-sink
 
 # Tangle all org files to extract source code
 tangle:
-	emacs --batch --eval "(require 'org)" --eval "(find-file \"SETUP.org\")" --eval "(org-babel-tangle)" --kill
+	emacs --batch --eval "(require 'org)" --eval "(find-file \"setup.org\")" --eval "(org-babel-tangle)" --kill
 
 # Install Python dependencies
 install:
@@ -82,10 +82,41 @@ test-simulator:
 	@wait
 	@echo "Simulator test completed"
 
+# OTLP debug sink - capture raw OTLP HTTP requests without forwarding
+otlp-debug-sink:
+	@echo "Starting OTLP debug sink on port 14318..."
+	@echo "This captures raw OTLP HTTP requests for debugging"
+	@echo "Configure Claude Code with:"
+	@echo "  export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:14318"
+	@echo "  export OTEL_METRICS_EXPORTER=otlp"
+	@echo ""
+	@echo "Press Ctrl+C to stop"
+	@echo "Logging to: otlp-debug-sink-$$(date +%Y%m%d-%H%M%S).log"
+	@nc -l 14318 | tee "otlp-debug-sink-$$(date +%Y%m%d-%H%M%S).log"
+
+# OTLP interceptor - capture AND forward OTLP HTTP requests
+otlp-interceptor:
+	@echo "Starting OTLP interceptor on port 14318..."
+	@echo "This captures raw OTLP HTTP requests AND forwards to pi.lan:4318"
+	@echo "Configure Claude Code with:"
+	@echo "  export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:14318"
+	@echo "  export OTEL_METRICS_EXPORTER=otlp"
+	@echo ""
+	@echo "Press Ctrl+C to stop"
+	@echo "Logging to: otlp-interceptor-$$(date +%Y%m%d-%H%M%S).log"
+	@nc -l 14318 | tee "otlp-interceptor-$$(date +%Y%m%d-%H%M%S).log" | nc pi.lan 4318
+
+# OTLP interceptor with real-time display
+otlp-interceptor-verbose:
+	@echo "Starting OTLP interceptor with analysis on port 14318..."
+	@echo "Forwarding to: pi.lan:4318"
+	@echo "Logging to: otlp-interceptor-$$(date +%Y%m%d-%H%M%S).log"
+	@nc -l 14318 | tee "otlp-interceptor-$$(date +%Y%m%d-%H%M%S).log" | tee >(grep -E "(POST|service\.name|tokens)" >&2) | nc pi.lan 4318
+
 # Help
 help:
 	@echo "Available targets:"
-	@echo "  tangle      - Extract source files from SETUP.org"
+	@echo "  tangle      - Extract source files from setup.org"
 	@echo "  install     - Install Python dependencies"
 	@echo "  analyze     - Run all analysis scripts"
 	@echo "  dashboards  - Generate Grafana dashboards from templates"
@@ -96,6 +127,7 @@ help:
 	@echo "  simulate-guile - Start Guile-based simulator (fallback to Python)"
 	@echo "  simulate-dev - Start simulator in development mode"
 	@echo "  test-simulator - Test simulator functionality"
+	@echo "  otlp-debug-sink - Capture raw OTLP HTTP requests for debugging"
 	@echo "  clean       - Remove generated files"
 	@echo "  lint        - Check code style"
 	@echo "  format      - Format code"
