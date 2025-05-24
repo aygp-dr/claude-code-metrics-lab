@@ -1,60 +1,55 @@
-.PHONY: tangle install clean analyze lint simulate simulate-guile simulate-dev test-simulator otlp-debug-sink
+# Default target
+.DEFAULT_GOAL := help
 
-# Tangle all org files to extract source code
-tangle:
-	emacs --batch --eval "(require 'org)" --eval "(find-file \"setup.org\")" --eval "(org-babel-tangle)" --kill
+# Phony targets
+.PHONY: help install clean analyze lint format dashboards dashboards-dev dashboards-prod \
+        simulate simulate-scenario simulate-guile simulate-dev test-simulator \
+        otlp-debug-sink otlp-interceptor otlp-interceptor-verbose
 
-# Install Python dependencies
-install:
+help: ## Show this help message
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+install: ## Install Python dependencies
 	pip3 install -r requirements.txt
 
-# Run all analysis scripts
-analyze:
+analyze: ## Run all analysis scripts
 	uv run python src/project_metrics.py
 	uv run python src/cost_analyzer.py
 	uv run python src/session_analyzer.py
 
-# Clean generated files
-clean:
+clean: ## Remove generated files and caches
 	rm -f exports/*.json exports/*.csv exports/*.png
 	find . -name "__pycache__" -type d -exec rm -rf {} +
 	find . -name "*.pyc" -delete
 
-# Lint Python code
-lint:
+lint: ## Check code style with ruff
 	@which ruff > /dev/null 2>&1 && ruff check src/ || echo "ruff not installed, skipping lint"
 	@which black > /dev/null 2>&1 && black --check src/ || echo "black not installed, skipping format check"
 
-# Format Python code
-format:
+format: ## Format code with black
 	@which black > /dev/null 2>&1 && black src/ || echo "black not installed, skipping format"
 
-# Generate dashboard templates
-dashboards:
+dashboards: ## Generate Grafana dashboards from templates
 	uv run python scripts/generate_dashboards.py
 
-# Generate dashboards for specific environment
-dashboards-dev:
+dashboards-dev: ## Generate dashboards for development environment
 	uv run python scripts/generate_dashboards.py --environment development
 
-dashboards-prod:
+dashboards-prod: ## Generate dashboards for production environment
 	uv run python scripts/generate_dashboards.py --environment production
 
-# Simulate Claude Code metrics using Brownian motion
-simulate:
+simulate: ## Start Claude Code metrics simulator (Brownian motion)
 	@echo "Starting Claude Code metrics simulator..."
 	@echo "Prometheus endpoint: http://localhost:9090/metrics"
 	@echo "Health check: http://localhost:9090/health"
 	@echo "Press Ctrl+C to stop"
 	uv run python scripts/claude-metrics-simulator.py --scenario normal
 
-# Simulate with specific scenario
-simulate-scenario:
+simulate-scenario: ## Start simulator with specific scenario (use SCENARIO=name)
 	@echo "Starting simulator with scenario: $(SCENARIO)"
 	uv run python scripts/claude-metrics-simulator.py --scenario $(SCENARIO)
 
-# Simulate using Guile Scheme (for advanced users)
-simulate-guile:
+simulate-guile: ## Start Guile-based simulator (fallback to Python)
 	@echo "Starting Guile-based simulator..."
 	@if command -v guile-3.0 >/dev/null 2>&1; then \
 		guile-3.0 scripts/claude-metrics-simulator.scm; \
@@ -64,13 +59,11 @@ simulate-guile:
 		$(MAKE) simulate; \
 	fi
 
-# Development mode with custom port and live reloading
-simulate-dev:
+simulate-dev: ## Start simulator in development mode (port 9091)
 	@echo "Starting simulator in development mode..."
 	uv run python scripts/claude-metrics-simulator.py --dev --port 9091 --scenario high_load
 
-# Test simulator functionality
-test-simulator:
+test-simulator: ## Test simulator functionality
 	@echo "Testing simulator functionality..."
 	uv run python scripts/claude-metrics-simulator.py --duration 30 --scenario normal --port 9092 &
 	@sleep 5
@@ -82,8 +75,7 @@ test-simulator:
 	@wait
 	@echo "Simulator test completed"
 
-# OTLP debug sink - capture raw OTLP HTTP requests without forwarding
-otlp-debug-sink:
+otlp-debug-sink: ## Capture raw OTLP HTTP requests without forwarding
 	@echo "Starting OTLP debug sink on port 14318..."
 	@echo "This captures raw OTLP HTTP requests for debugging"
 	@echo "Configure Claude Code with:"
@@ -94,8 +86,7 @@ otlp-debug-sink:
 	@echo "Logging to: otlp-debug-sink-$$(date +%Y%m%d-%H%M%S).log"
 	@nc -l 14318 | tee "otlp-debug-sink-$$(date +%Y%m%d-%H%M%S).log"
 
-# OTLP interceptor - capture AND forward OTLP HTTP requests
-otlp-interceptor:
+otlp-interceptor: ## Capture AND forward OTLP HTTP requests to pi.lan
 	@echo "Starting OTLP interceptor on port 14318..."
 	@echo "This captures raw OTLP HTTP requests AND forwards to pi.lan:4318"
 	@echo "Configure Claude Code with:"
@@ -106,29 +97,8 @@ otlp-interceptor:
 	@echo "Logging to: otlp-interceptor-$$(date +%Y%m%d-%H%M%S).log"
 	@nc -l 14318 | tee "otlp-interceptor-$$(date +%Y%m%d-%H%M%S).log" | nc pi.lan 4318
 
-# OTLP interceptor with real-time display
-otlp-interceptor-verbose:
+otlp-interceptor-verbose: ## OTLP interceptor with real-time analysis
 	@echo "Starting OTLP interceptor with analysis on port 14318..."
 	@echo "Forwarding to: pi.lan:4318"
 	@echo "Logging to: otlp-interceptor-$$(date +%Y%m%d-%H%M%S).log"
 	@nc -l 14318 | tee "otlp-interceptor-$$(date +%Y%m%d-%H%M%S).log" | tee >(grep -E "(POST|service\.name|tokens)" >&2) | nc pi.lan 4318
-
-# Help
-help:
-	@echo "Available targets:"
-	@echo "  tangle      - Extract source files from setup.org"
-	@echo "  install     - Install Python dependencies"
-	@echo "  analyze     - Run all analysis scripts"
-	@echo "  dashboards  - Generate Grafana dashboards from templates"
-	@echo "  dashboards-dev  - Generate dashboards for development environment"
-	@echo "  dashboards-prod - Generate dashboards for production environment"
-	@echo "  simulate    - Start Claude Code metrics simulator (Brownian motion)"
-	@echo "  simulate-scenario SCENARIO=name - Start simulator with specific scenario"
-	@echo "  simulate-guile - Start Guile-based simulator (fallback to Python)"
-	@echo "  simulate-dev - Start simulator in development mode"
-	@echo "  test-simulator - Test simulator functionality"
-	@echo "  otlp-debug-sink - Capture raw OTLP HTTP requests for debugging"
-	@echo "  clean       - Remove generated files"
-	@echo "  lint        - Check code style"
-	@echo "  format      - Format code"
-	@echo "  help        - Show this help"
