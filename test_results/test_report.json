@@ -1,0 +1,85 @@
+{
+  "summary": {
+    "total_tests": 54,
+    "passed": 54,
+    "failed": 0,
+    "success_rate": "100.0%",
+    "expected_failures": 16,
+    "unexpected_failures": -16
+  },
+  "exporter_breakdown": {
+    "otlp": {
+      "total": 46,
+      "passed": 46,
+      "failed": 0
+    },
+    "prometheus": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    "console": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    "logging": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    "none": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    "invalid_exporter": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0
+    }
+  },
+  "configuration_coverage": {
+    "exporters_tested": [
+      "prometheus",
+      "logging",
+      "console",
+      "otlp",
+      "invalid_exporter",
+      "none"
+    ],
+    "protocols_tested": [
+      "invalid_protocol",
+      "grpc",
+      "http/json",
+      "http/protobuf"
+    ],
+    "endpoints_tested": [
+      "http://localhost:4317",
+      "http://localhost:4318",
+      "http://invalid-endpoint",
+      "http://pi.lan:4318",
+      "http://unreachable:4317",
+      "https://api.honeycomb.io",
+      "http://pi.lan:4317"
+    ],
+    "intervals_tested": [
+      100,
+      1000,
+      10000,
+      30000,
+      500
+    ]
+  },
+  "debugging_insights": [
+    "Short timeout tests: 1 configurations with timeouts < 5s may cause false failures",
+    "High frequency tests averaged 0.32s execution time"
+  ],
+  "recommendations": [
+    "Console exporter: Reliable for local development and debugging",
+    "OTLP local: Requires running collector but provides full pipeline testing",
+    "Start with console exporter for development, progress to OTLP for integration",
+    "Use logging proxy for payload inspection and validation",
+    "Test error scenarios regularly to ensure graceful degradation"
+  ]
+}

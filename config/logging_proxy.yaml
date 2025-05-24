@@ -1,0 +1,85 @@
+# Logging Proxy Configuration for Claude Code Metrics
+# This configuration defines how metrics are collected, validated, and logged
+
+# Main proxy settings
+enabled: true
+log_level: "INFO"
+output_format: "both"  # json, prometheus, both
+verify_payloads: true
+simulate_prometheus: true
+export_path: "exports/proxy_logs"
+
+# Threshold monitoring
+thresholds:
+  max_tokens_per_minute: 10000
+  max_cost_per_hour: 15.0
+  max_session_duration: 7200  # 2 hours
+  cost_warning_threshold: 5.0
+  cost_critical_threshold: 20.0
+
+# Metric definitions with validation rules
+metrics:
+  otel_claude_code_token_usage_tokens_total:
+    name: "otel_claude_code_token_usage_tokens_total"
+    metric_type: "counter"
+    labels: ["model", "token_type", "session_id", "project"]
+    validation_rules:
+      required_fields: ["value", "labels"]
+      required_labels: ["model", "token_type"]
+      value_range: [0, 1000000]
+      allowed_models: ["claude-3-sonnet", "claude-3-haiku", "claude-3-opus"]
+    prometheus_format: |
+      # HELP otel_claude_code_token_usage_tokens_total Total tokens used in Claude Code sessions
+      # TYPE otel_claude_code_token_usage_tokens_total counter
+    description: "Total number of tokens used in Claude Code sessions"
+
+  otel_claude_code_session_duration_seconds:
+    name: "otel_claude_code_session_duration_seconds"
+    metric_type: "histogram"
+    labels: ["session_id", "status", "project"]
+    validation_rules:
+      required_fields: ["value"]
+      value_range: [0, 86400]  # Max 24 hours
+      allowed_statuses: ["active", "completed", "failed", "timeout"]
+    prometheus_format: |
+      # HELP otel_claude_code_session_duration_seconds Duration of Claude Code sessions
+      # TYPE otel_claude_code_session_duration_seconds histogram
+    description: "Duration of Claude Code sessions in seconds"
+
+  otel_claude_code_cost_usd:
+    name: "otel_claude_code_cost_usd"
+    metric_type: "gauge"
+    labels: ["model", "session_id", "project"]
+    validation_rules:
+      required_fields: ["value"]
+      value_range: [0, 1000]  # Max $1000
+    prometheus_format: |
+      # HELP otel_claude_code_cost_usd Estimated cost in USD for Claude Code usage
+      # TYPE otel_claude_code_cost_usd gauge
+    description: "Estimated cost in USD for Claude Code usage"
+
+  otel_claude_code_tool_usage_total:
+    name: "otel_claude_code_tool_usage_total"
+    metric_type: "counter"
+    labels: ["tool_name", "session_id", "project", "status"]
+    validation_rules:
+      required_fields: ["value", "labels"]
+      required_labels: ["tool_name"]
+      value_range: [0, 10000]
+    prometheus_format: |
+      # HELP otel_claude_code_tool_usage_total Number of tool invocations in Claude Code
+      # TYPE otel_claude_code_tool_usage_total counter
+    description: "Number of tool invocations in Claude Code sessions"
+
+  otel_claude_code_error_total:
+    name: "otel_claude_code_error_total"
+    metric_type: "counter"
+    labels: ["error_type", "session_id", "tool_name"]
+    validation_rules:
+      required_fields: ["value", "labels"]
+      required_labels: ["error_type"]
+      value_range: [0, 1000]
+    prometheus_format: |
+      # HELP otel_claude_code_error_total Number of errors in Claude Code sessions
+      # TYPE otel_claude_code_error_total counter
+    description: "Number of errors encountered in Claude Code sessions"

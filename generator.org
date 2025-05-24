@@ -1,0 +1,169 @@
+#+TITLE: Claude Code Metrics Lab Setup
+#+AUTHOR: Claude Code Metrics Mock Generator
+#+DATE: 2025-05-23
+#+PROPERTY: header-args:python :session *claude-metrics* :results output
+#+PROPERTY: header-args:sh :results output verbatim
+
+* Overview
+
+This document sets up mock Claude Code metrics for testing Grafana dashboards.
+
+* Environment Setup
+
+** Check Environment Variables
+
+#+BEGIN_SRC sh
+echo "OTEL Endpoint: $OTEL_EXPORTER_OTLP_ENDPOINT"
+echo "OTEL Protocol: $OTEL_EXPORTER_OTLP_PROTOCOL"
+echo "Export Interval: $OTEL_METRIC_EXPORT_INTERVAL"
+#+END_SRC
+
+** Install Dependencies
+
+#+BEGIN_SRC sh :dir .
+pip install -r requirements.txt
+#+END_SRC
+
+* Metrics Architecture
+
+#+BEGIN_SRC mermaid :file metrics-architecture.png :exports results
+graph LR
+    A[Claude Code Metrics Lab] -->|OTLP/gRPC| B[OpenTelemetry Collector]
+    B -->|Remote Write| C[Prometheus]
+    C -->|Query| D[Grafana Dashboard]
+    
+    subgraph Metrics
+        E[Cost Metrics]
+        F[Lines of Code]
+        G[Token Usage]
+    end
+    
+    A --> E
+    A --> F
+    A --> G
+#+END_SRC
+
+* Mock Data Generation
+
+** Quick Test (1 batch)
+
+#+BEGIN_SRC python :tangle test_metrics.py :mkdirp t
+#!/usr/bin/env python3
+import sys
+sys.path.append('.')
+from mock_metrics_sender import ClaudeCodeMetricsMocker
+
+# Create mocker and send one batch
+mocker = ClaudeCodeMetricsMocker()
+mocker.send_metrics(iterations=1, delay=0)
+#+END_SRC
+
+** Continuous Generation (10 minutes)
+
+#+BEGIN_SRC python :tangle continuous_metrics.py :mkdirp t
+#!/usr/bin/env python3
+import sys
+sys.path.append('.')
+from mock_metrics_sender import ClaudeCodeMetricsMocker
+
+# Send metrics every 5 seconds for 10 minutes
+mocker = ClaudeCodeMetricsMocker()
+mocker.send_metrics(iterations=120, delay=5)
+#+END_SRC
+
+* Prometheus Queries
+
+** Cost by Model
+
+#+BEGIN_SRC promql
+sum(rate(otel_claude_code_cost_usage_USD_total[5m])) by (model)
+#+END_SRC
+
+** Lines of Code Changes
+
+#+BEGIN_SRC promql
+sum(rate(otel_claude_code_lines_of_code_count_total[5m])) by (type)
+#+END_SRC
+
+** Token Usage by Type
+
+#+BEGIN_SRC promql
+sum(rate(otel_claude_code_token_usage_tokens_total[5m])) by (model, type)
+#+END_SRC
+
+** Session Activity
+
+#+BEGIN_SRC promql
+count(count by (session_id)(otel_claude_code_cost_usage_USD_total))
+#+END_SRC
+
+* Grafana Dashboard JSON
+
+** Panel: Cost Over Time
+
+#+BEGIN_SRC json :tangle panels/cost_over_time.json :mkdirp t
+{
+  "title": "Claude Code Cost Over Time",
+  "targets": [
+    {
+      "expr": "sum(rate(otel_claude_code_cost_usage_USD_total[5m])) by (model)",
+      "legendFormat": "{{model}}"
+    }
+  ],
+  "yaxis": {
+    "label": "Cost (USD/sec)"
+  }
+}
+#+END_SRC
+
+** Panel: Token Usage Heatmap
+
+#+BEGIN_SRC json :tangle panels/token_heatmap.json :mkdirp t
+{
+  "title": "Token Usage by Model and Type",
+  "targets": [
+    {
+      "expr": "sum(rate(otel_claude_code_token_usage_tokens_total[5m])) by (model, type)",
+      "format": "heatmap"
+    }
+  ]
+}
+#+END_SRC
+
+* Troubleshooting
+
+** Check Metric Export
+
+#+BEGIN_SRC sh
+curl -s http://pi.lan:9090/api/v1/label/__name__/values | jq '.data[] | select(startswith("otel_claude_code"))'
+#+END_SRC
+
+** View Raw Metrics
+
+#+BEGIN_SRC sh
+curl -s "http://pi.lan:9090/api/v1/query?query=otel_claude_code_cost_usage_USD_total" | jq .
+#+END_SRC
+
+* Running the Mock Generator
+
+** Start in Background
+
+#+BEGIN_SRC sh :tangle start_mock_metrics.sh :shebang #!/bin/sh :mkdirp t
+#!/bin/sh
+nohup python3 mock_metrics_sender.py > metrics.log 2>&1 &
+echo $! > metrics.pid
+echo "Started mock metrics generator with PID $(cat metrics.pid)"
+#+END_SRC
+
+** Stop Background Process
+
+#+BEGIN_SRC sh :tangle stop_mock_metrics.sh :shebang #!/bin/sh :mkdirp t
+#!/bin/sh
+if [ -f metrics.pid ]; then
+    kill $(cat metrics.pid)
+    rm metrics.pid
+    echo "Stopped mock metrics generator"
+else
+    echo "No PID file found"
+fi
+#+END_SRC

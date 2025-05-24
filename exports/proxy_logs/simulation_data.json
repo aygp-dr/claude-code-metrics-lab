@@ -1,0 +1,1759 @@
+{
+  "config": {
+    "enabled": true,
+    "log_level": "INFO",
+    "output_format": "both",
+    "verify_payloads": true,
+    "simulate_prometheus": true,
+    "metrics": {
+      "otel_claude_code_token_usage_tokens_total": {
+        "name": "otel_claude_code_token_usage_tokens_total",
+        "metric_type": "counter",
+        "labels": [
+          "model",
+          "token_type",
+          "session_id",
+          "project"
+        ],
+        "validation_rules": {
+          "required_fields": [
+            "value",
+            "labels"
+          ],
+          "required_labels": [
+            "model",
+            "token_type"
+          ],
+          "value_range": [
+            0,
+            1000000
+          ],
+          "allowed_models": [
+            "claude-3-sonnet",
+            "claude-3-haiku",
+            "claude-3-opus"
+          ]
+        },
+        "prometheus_format": "# HELP otel_claude_code_token_usage_tokens_total Total tokens used in Claude Code sessions\n# TYPE otel_claude_code_token_usage_tokens_total counter\n",
+        "description": "Total number of tokens used in Claude Code sessions"
+      },
+      "otel_claude_code_session_duration_seconds": {
+        "name": "otel_claude_code_session_duration_seconds",
+        "metric_type": "histogram",
+        "labels": [
+          "session_id",
+          "status",
+          "project"
+        ],
+        "validation_rules": {
+          "required_fields": [
+            "value"
+          ],
+          "value_range": [
+            0,
+            86400
+          ],
+          "allowed_statuses": [
+            "active",
+            "completed",
+            "failed",
+            "timeout"
+          ]
+        },
+        "prometheus_format": "# HELP otel_claude_code_session_duration_seconds Duration of Claude Code sessions\n# TYPE otel_claude_code_session_duration_seconds histogram\n",
+        "description": "Duration of Claude Code sessions in seconds"
+      },
+      "otel_claude_code_cost_usd": {
+        "name": "otel_claude_code_cost_usd",
+        "metric_type": "gauge",
+        "labels": [
+          "model",
+          "session_id",
+          "project"
+        ],
+        "validation_rules": {
+          "required_fields": [
+            "value"
+          ],
+          "value_range": [
+            0,
+            1000
+          ]
+        },
+        "prometheus_format": "# HELP otel_claude_code_cost_usd Estimated cost in USD for Claude Code usage\n# TYPE otel_claude_code_cost_usd gauge\n",
+        "description": "Estimated cost in USD for Claude Code usage"
+      },
+      "otel_claude_code_tool_usage_total": {
+        "name": "otel_claude_code_tool_usage_total",
+        "metric_type": "counter",
+        "labels": [
+          "tool_name",
+          "session_id",
+          "project",
+          "status"
+        ],
+        "validation_rules": {
+          "required_fields": [
+            "value",
+            "labels"
+          ],
+          "required_labels": [
+            "tool_name"
+          ],
+          "value_range": [
+            0,
+            10000
+          ]
+        },
+        "prometheus_format": "# HELP otel_claude_code_tool_usage_total Number of tool invocations in Claude Code\n# TYPE otel_claude_code_tool_usage_total counter\n",
+        "description": "Number of tool invocations in Claude Code sessions"
+      },
+      "otel_claude_code_error_total": {
+        "name": "otel_claude_code_error_total",
+        "metric_type": "counter",
+        "labels": [
+          "error_type",
+          "session_id",
+          "tool_name"
+        ],
+        "validation_rules": {
+          "required_fields": [
+            "value",
+            "labels"
+          ],
+          "required_labels": [
+            "error_type"
+          ],
+          "value_range": [
+            0,
+            1000
+          ]
+        },
+        "prometheus_format": "# HELP otel_claude_code_error_total Number of errors in Claude Code sessions\n# TYPE otel_claude_code_error_total counter\n",
+        "description": "Number of errors encountered in Claude Code sessions"
+      }
+    },
+    "thresholds": {
+      "max_tokens_per_minute": 10000,
+      "max_cost_per_hour": 15.0,
+      "max_session_duration": 7200,
+      "cost_warning_threshold": 5.0,
+      "cost_critical_threshold": 20.0
+    },
+    "export_path": "exports/proxy_logs"
+  },
+  "session_summary": {
+    "total_metrics": 51,
+    "metric_types": [
+      "otel_claude_code_error_total",
+      "otel_claude_code_session_duration_seconds",
+      "otel_claude_code_cost_usd",
+      "otel_claude_code_tool_usage_total",
+      "otel_claude_code_token_usage_tokens_total"
+    ],
+    "start_time": 1748050701.4023266,
+    "end_time": 1748050701.572789
+  },
+  "metrics": [
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 800,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "input",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4023266,
+      "iso_timestamp": "2025-05-23T21:38:21.402327",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"input\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 800 1748050701402"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 600,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "output",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4040875,
+      "iso_timestamp": "2025-05-23T21:38:21.404088",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"output\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 600 1748050701404"
+    },
+    {
+      "metric_name": "otel_claude_code_cost_usd",
+      "value": 0.2,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.405469,
+      "iso_timestamp": "2025-05-23T21:38:21.405469",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_cost_usd"
+      },
+      "prometheus_format": "otel_claude_code_cost_usd{model=\"claude-3-sonnet\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 0.2 1748050701405"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 800,
+      "labels": {
+        "model": "claude-3-haiku",
+        "token_type": "input",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4100962,
+      "iso_timestamp": "2025-05-23T21:38:21.410096",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-haiku\",token_type=\"input\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 800 1748050701410"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 600,
+      "labels": {
+        "model": "claude-3-haiku",
+        "token_type": "output",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4114556,
+      "iso_timestamp": "2025-05-23T21:38:21.411456",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-haiku\",token_type=\"output\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 600 1748050701411"
+    },
+    {
+      "metric_name": "otel_claude_code_cost_usd",
+      "value": 0.2,
+      "labels": {
+        "model": "claude-3-haiku",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4127986,
+      "iso_timestamp": "2025-05-23T21:38:21.412799",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_cost_usd"
+      },
+      "prometheus_format": "otel_claude_code_cost_usd{model=\"claude-3-haiku\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 0.2 1748050701412"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 800,
+      "labels": {
+        "model": "claude-3-opus",
+        "token_type": "input",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4183772,
+      "iso_timestamp": "2025-05-23T21:38:21.418377",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-opus\",token_type=\"input\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 800 1748050701418"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 600,
+      "labels": {
+        "model": "claude-3-opus",
+        "token_type": "output",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.419862,
+      "iso_timestamp": "2025-05-23T21:38:21.419862",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-opus\",token_type=\"output\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 600 1748050701419"
+    },
+    {
+      "metric_name": "otel_claude_code_cost_usd",
+      "value": 0.2,
+      "labels": {
+        "model": "claude-3-opus",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4212692,
+      "iso_timestamp": "2025-05-23T21:38:21.421269",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_cost_usd"
+      },
+      "prometheus_format": "otel_claude_code_cost_usd{model=\"claude-3-opus\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 0.2 1748050701421"
+    },
+    {
+      "metric_name": "otel_claude_code_tool_usage_total",
+      "value": 1,
+      "labels": {
+        "tool_name": "Read",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development",
+        "status": "success"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4239626,
+      "iso_timestamp": "2025-05-23T21:38:21.423963",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_tool_usage_total"
+      },
+      "prometheus_format": "otel_claude_code_tool_usage_total{tool_name=\"Read\",session_id=\"simulation-001-web-development\",project=\"web-development\",status=\"success\"} 1 1748050701423"
+    },
+    {
+      "metric_name": "otel_claude_code_session_duration_seconds",
+      "value": 600,
+      "labels": {
+        "session_id": "simulation-001-web-development",
+        "status": "completed",
+        "project": "web-development"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4254014,
+      "iso_timestamp": "2025-05-23T21:38:21.425401",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_session_duration_seconds"
+      },
+      "prometheus_format": "otel_claude_code_session_duration_seconds{session_id=\"simulation-001-web-development\",status=\"completed\",project=\"web-development\"} 600 1748050701425"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1000,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "input",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4299717,
+      "iso_timestamp": "2025-05-23T21:38:21.429972",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"input\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 1000 1748050701429"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 750,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "output",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.431011,
+      "iso_timestamp": "2025-05-23T21:38:21.431011",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"output\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 750 1748050701431"
+    },
+    {
+      "metric_name": "otel_claude_code_cost_usd",
+      "value": 0.25,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.43209,
+      "iso_timestamp": "2025-05-23T21:38:21.432090",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_cost_usd"
+      },
+      "prometheus_format": "otel_claude_code_cost_usd{model=\"claude-3-sonnet\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 0.25 1748050701432"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1000,
+      "labels": {
+        "model": "claude-3-haiku",
+        "token_type": "input",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4333181,
+      "iso_timestamp": "2025-05-23T21:38:21.433318",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-haiku\",token_type=\"input\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 1000 1748050701433"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 750,
+      "labels": {
+        "model": "claude-3-haiku",
+        "token_type": "output",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4351246,
+      "iso_timestamp": "2025-05-23T21:38:21.435125",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-haiku\",token_type=\"output\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 750 1748050701435"
+    },
+    {
+      "metric_name": "otel_claude_code_cost_usd",
+      "value": 0.25,
+      "labels": {
+        "model": "claude-3-haiku",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.436143,
+      "iso_timestamp": "2025-05-23T21:38:21.436143",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_cost_usd"
+      },
+      "prometheus_format": "otel_claude_code_cost_usd{model=\"claude-3-haiku\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 0.25 1748050701436"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1000,
+      "labels": {
+        "model": "claude-3-opus",
+        "token_type": "input",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4371476,
+      "iso_timestamp": "2025-05-23T21:38:21.437148",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-opus\",token_type=\"input\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 1000 1748050701437"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 750,
+      "labels": {
+        "model": "claude-3-opus",
+        "token_type": "output",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4406593,
+      "iso_timestamp": "2025-05-23T21:38:21.440659",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-opus\",token_type=\"output\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 750 1748050701440"
+    },
+    {
+      "metric_name": "otel_claude_code_cost_usd",
+      "value": 0.25,
+      "labels": {
+        "model": "claude-3-opus",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4464462,
+      "iso_timestamp": "2025-05-23T21:38:21.446446",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_cost_usd"
+      },
+      "prometheus_format": "otel_claude_code_cost_usd{model=\"claude-3-opus\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 0.25 1748050701446"
+    },
+    {
+      "metric_name": "otel_claude_code_tool_usage_total",
+      "value": 1,
+      "labels": {
+        "tool_name": "Read",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis",
+        "status": "success"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.448844,
+      "iso_timestamp": "2025-05-23T21:38:21.448844",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_tool_usage_total"
+      },
+      "prometheus_format": "otel_claude_code_tool_usage_total{tool_name=\"Read\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\",status=\"success\"} 1 1748050701448"
+    },
+    {
+      "metric_name": "otel_claude_code_tool_usage_total",
+      "value": 2,
+      "labels": {
+        "tool_name": "Write",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis",
+        "status": "success"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4513085,
+      "iso_timestamp": "2025-05-23T21:38:21.451308",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_tool_usage_total"
+      },
+      "prometheus_format": "otel_claude_code_tool_usage_total{tool_name=\"Write\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\",status=\"success\"} 2 1748050701451"
+    },
+    {
+      "metric_name": "otel_claude_code_session_duration_seconds",
+      "value": 900,
+      "labels": {
+        "session_id": "simulation-001-data-analysis",
+        "status": "completed",
+        "project": "data-analysis"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.452477,
+      "iso_timestamp": "2025-05-23T21:38:21.452477",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_session_duration_seconds"
+      },
+      "prometheus_format": "otel_claude_code_session_duration_seconds{session_id=\"simulation-001-data-analysis\",status=\"completed\",project=\"data-analysis\"} 900 1748050701452"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1200,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "input",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4534383,
+      "iso_timestamp": "2025-05-23T21:38:21.453438",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"input\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 1200 1748050701453"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 900,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "output",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4551125,
+      "iso_timestamp": "2025-05-23T21:38:21.455112",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"output\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 900 1748050701455"
+    },
+    {
+      "metric_name": "otel_claude_code_cost_usd",
+      "value": 0.30000000000000004,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4565194,
+      "iso_timestamp": "2025-05-23T21:38:21.456519",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_cost_usd"
+      },
+      "prometheus_format": "otel_claude_code_cost_usd{model=\"claude-3-sonnet\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 0.30000000000000004 1748050701456"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1200,
+      "labels": {
+        "model": "claude-3-haiku",
+        "token_type": "input",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4592597,
+      "iso_timestamp": "2025-05-23T21:38:21.459260",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-haiku\",token_type=\"input\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 1200 1748050701459"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 900,
+      "labels": {
+        "model": "claude-3-haiku",
+        "token_type": "output",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4632332,
+      "iso_timestamp": "2025-05-23T21:38:21.463233",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-haiku\",token_type=\"output\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 900 1748050701463"
+    },
+    {
+      "metric_name": "otel_claude_code_cost_usd",
+      "value": 0.30000000000000004,
+      "labels": {
+        "model": "claude-3-haiku",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4643478,
+      "iso_timestamp": "2025-05-23T21:38:21.464348",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_cost_usd"
+      },
+      "prometheus_format": "otel_claude_code_cost_usd{model=\"claude-3-haiku\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 0.30000000000000004 1748050701464"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1200,
+      "labels": {
+        "model": "claude-3-opus",
+        "token_type": "input",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4683,
+      "iso_timestamp": "2025-05-23T21:38:21.468300",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-opus\",token_type=\"input\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 1200 1748050701468"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 900,
+      "labels": {
+        "model": "claude-3-opus",
+        "token_type": "output",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.4704115,
+      "iso_timestamp": "2025-05-23T21:38:21.470412",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-opus\",token_type=\"output\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 900 1748050701470"
+    },
+    {
+      "metric_name": "otel_claude_code_cost_usd",
+      "value": 0.30000000000000004,
+      "labels": {
+        "model": "claude-3-opus",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.5104594,
+      "iso_timestamp": "2025-05-23T21:38:21.510459",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_cost_usd"
+      },
+      "prometheus_format": "otel_claude_code_cost_usd{model=\"claude-3-opus\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 0.30000000000000004 1748050701510"
+    },
+    {
+      "metric_name": "otel_claude_code_tool_usage_total",
+      "value": 1,
+      "labels": {
+        "tool_name": "Read",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning",
+        "status": "success"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.5119672,
+      "iso_timestamp": "2025-05-23T21:38:21.511967",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_tool_usage_total"
+      },
+      "prometheus_format": "otel_claude_code_tool_usage_total{tool_name=\"Read\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\",status=\"success\"} 1 1748050701511"
+    },
+    {
+      "metric_name": "otel_claude_code_tool_usage_total",
+      "value": 2,
+      "labels": {
+        "tool_name": "Write",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning",
+        "status": "success"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.51337,
+      "iso_timestamp": "2025-05-23T21:38:21.513370",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_tool_usage_total"
+      },
+      "prometheus_format": "otel_claude_code_tool_usage_total{tool_name=\"Write\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\",status=\"success\"} 2 1748050701513"
+    },
+    {
+      "metric_name": "otel_claude_code_tool_usage_total",
+      "value": 3,
+      "labels": {
+        "tool_name": "Edit",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning",
+        "status": "success"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.5232651,
+      "iso_timestamp": "2025-05-23T21:38:21.523265",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_tool_usage_total"
+      },
+      "prometheus_format": "otel_claude_code_tool_usage_total{tool_name=\"Edit\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\",status=\"success\"} 3 1748050701523"
+    },
+    {
+      "metric_name": "otel_claude_code_session_duration_seconds",
+      "value": 1200,
+      "labels": {
+        "session_id": "simulation-001-machine-learning",
+        "status": "completed",
+        "project": "machine-learning"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.5247028,
+      "iso_timestamp": "2025-05-23T21:38:21.524703",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_session_duration_seconds"
+      },
+      "prometheus_format": "otel_claude_code_session_duration_seconds{session_id=\"simulation-001-machine-learning\",status=\"completed\",project=\"machine-learning\"} 1200 1748050701524"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1400,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "input",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.5330448,
+      "iso_timestamp": "2025-05-23T21:38:21.533045",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"input\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 1400 1748050701533"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1050,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "output",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.5345106,
+      "iso_timestamp": "2025-05-23T21:38:21.534511",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"output\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 1050 1748050701534"
+    },
+    {
+      "metric_name": "otel_claude_code_cost_usd",
+      "value": 0.35000000000000003,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.5358107,
+      "iso_timestamp": "2025-05-23T21:38:21.535811",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_cost_usd"
+      },
+      "prometheus_format": "otel_claude_code_cost_usd{model=\"claude-3-sonnet\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 0.35000000000000003 1748050701535"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1400,
+      "labels": {
+        "model": "claude-3-haiku",
+        "token_type": "input",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.547216,
+      "iso_timestamp": "2025-05-23T21:38:21.547216",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-haiku\",token_type=\"input\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 1400 1748050701547"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1050,
+      "labels": {
+        "model": "claude-3-haiku",
+        "token_type": "output",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.5488303,
+      "iso_timestamp": "2025-05-23T21:38:21.548830",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-haiku\",token_type=\"output\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 1050 1748050701548"
+    },
+    {
+      "metric_name": "otel_claude_code_cost_usd",
+      "value": 0.35000000000000003,
+      "labels": {
+        "model": "claude-3-haiku",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.5546844,
+      "iso_timestamp": "2025-05-23T21:38:21.554684",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_cost_usd"
+      },
+      "prometheus_format": "otel_claude_code_cost_usd{model=\"claude-3-haiku\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 0.35000000000000003 1748050701554"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1400,
+      "labels": {
+        "model": "claude-3-opus",
+        "token_type": "input",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.5558636,
+      "iso_timestamp": "2025-05-23T21:38:21.555864",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-opus\",token_type=\"input\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 1400 1748050701555"
+    },
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1050,
+      "labels": {
+        "model": "claude-3-opus",
+        "token_type": "output",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.5568707,
+      "iso_timestamp": "2025-05-23T21:38:21.556871",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-opus\",token_type=\"output\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 1050 1748050701556"
+    },
+    {
+      "metric_name": "otel_claude_code_cost_usd",
+      "value": 0.35000000000000003,
+      "labels": {
+        "model": "claude-3-opus",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.5620995,
+      "iso_timestamp": "2025-05-23T21:38:21.562099",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_cost_usd"
+      },
+      "prometheus_format": "otel_claude_code_cost_usd{model=\"claude-3-opus\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 0.35000000000000003 1748050701562"
+    },
+    {
+      "metric_name": "otel_claude_code_tool_usage_total",
+      "value": 1,
+      "labels": {
+        "tool_name": "Read",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure",
+        "status": "success"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.5631332,
+      "iso_timestamp": "2025-05-23T21:38:21.563133",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_tool_usage_total"
+      },
+      "prometheus_format": "otel_claude_code_tool_usage_total{tool_name=\"Read\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\",status=\"success\"} 1 1748050701563"
+    },
+    {
+      "metric_name": "otel_claude_code_tool_usage_total",
+      "value": 2,
+      "labels": {
+        "tool_name": "Write",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure",
+        "status": "success"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.5641816,
+      "iso_timestamp": "2025-05-23T21:38:21.564182",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_tool_usage_total"
+      },
+      "prometheus_format": "otel_claude_code_tool_usage_total{tool_name=\"Write\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\",status=\"success\"} 2 1748050701564"
+    },
+    {
+      "metric_name": "otel_claude_code_tool_usage_total",
+      "value": 3,
+      "labels": {
+        "tool_name": "Edit",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure",
+        "status": "success"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.565174,
+      "iso_timestamp": "2025-05-23T21:38:21.565174",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_tool_usage_total"
+      },
+      "prometheus_format": "otel_claude_code_tool_usage_total{tool_name=\"Edit\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\",status=\"success\"} 3 1748050701565"
+    },
+    {
+      "metric_name": "otel_claude_code_tool_usage_total",
+      "value": 4,
+      "labels": {
+        "tool_name": "Bash",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure",
+        "status": "success"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.5704985,
+      "iso_timestamp": "2025-05-23T21:38:21.570498",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_tool_usage_total"
+      },
+      "prometheus_format": "otel_claude_code_tool_usage_total{tool_name=\"Bash\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\",status=\"success\"} 4 1748050701570"
+    },
+    {
+      "metric_name": "otel_claude_code_session_duration_seconds",
+      "value": 1500,
+      "labels": {
+        "session_id": "simulation-001-infrastructure",
+        "status": "completed",
+        "project": "infrastructure"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.5716379,
+      "iso_timestamp": "2025-05-23T21:38:21.571638",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_session_duration_seconds"
+      },
+      "prometheus_format": "otel_claude_code_session_duration_seconds{session_id=\"simulation-001-infrastructure\",status=\"completed\",project=\"infrastructure\"} 1500 1748050701571"
+    },
+    {
+      "metric_name": "otel_claude_code_error_total",
+      "value": 1,
+      "labels": {
+        "error_type": "timeout",
+        "session_id": "simulation-001-web-development",
+        "tool_name": "WebFetch"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.572789,
+      "iso_timestamp": "2025-05-23T21:38:21.572789",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_error_total"
+      },
+      "prometheus_format": "otel_claude_code_error_total{error_type=\"timeout\",session_id=\"simulation-001-web-development\",tool_name=\"WebFetch\"} 1 1748050701572"
+    }
+  ],
+  "prometheus_store": {
+    "otel_claude_code_token_usage_tokens_total_5895928926027209279": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 800,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "input",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "timestamp": 1748050701.4023266,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"input\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 800 1748050701402"
+    },
+    "otel_claude_code_token_usage_tokens_total_-8959246712180824787": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 600,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "output",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "timestamp": 1748050701.4040875,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"output\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 600 1748050701404"
+    },
+    "otel_claude_code_cost_usd_-1193743204608673632": {
+      "name": "otel_claude_code_cost_usd",
+      "value": 0.2,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "timestamp": 1748050701.405469,
+      "formatted": "otel_claude_code_cost_usd{model=\"claude-3-sonnet\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 0.2 1748050701405"
+    },
+    "otel_claude_code_token_usage_tokens_total_5127058631432708645": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 800,
+      "labels": {
+        "model": "claude-3-haiku",
+        "token_type": "input",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "timestamp": 1748050701.4100962,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-haiku\",token_type=\"input\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 800 1748050701410"
+    },
+    "otel_claude_code_token_usage_tokens_total_8401538592154322388": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 600,
+      "labels": {
+        "model": "claude-3-haiku",
+        "token_type": "output",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "timestamp": 1748050701.4114556,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-haiku\",token_type=\"output\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 600 1748050701411"
+    },
+    "otel_claude_code_cost_usd_-2422357832848081597": {
+      "name": "otel_claude_code_cost_usd",
+      "value": 0.2,
+      "labels": {
+        "model": "claude-3-haiku",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "timestamp": 1748050701.4127986,
+      "formatted": "otel_claude_code_cost_usd{model=\"claude-3-haiku\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 0.2 1748050701412"
+    },
+    "otel_claude_code_token_usage_tokens_total_-8716297328740965739": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 800,
+      "labels": {
+        "model": "claude-3-opus",
+        "token_type": "input",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "timestamp": 1748050701.4183772,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-opus\",token_type=\"input\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 800 1748050701418"
+    },
+    "otel_claude_code_token_usage_tokens_total_8175705876963177755": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 600,
+      "labels": {
+        "model": "claude-3-opus",
+        "token_type": "output",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "timestamp": 1748050701.419862,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-opus\",token_type=\"output\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 600 1748050701419"
+    },
+    "otel_claude_code_cost_usd_3934162741907508429": {
+      "name": "otel_claude_code_cost_usd",
+      "value": 0.2,
+      "labels": {
+        "model": "claude-3-opus",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development"
+      },
+      "timestamp": 1748050701.4212692,
+      "formatted": "otel_claude_code_cost_usd{model=\"claude-3-opus\",session_id=\"simulation-001-web-development\",project=\"web-development\"} 0.2 1748050701421"
+    },
+    "otel_claude_code_tool_usage_total_-8883249032041720321": {
+      "name": "otel_claude_code_tool_usage_total",
+      "value": 1,
+      "labels": {
+        "tool_name": "Read",
+        "session_id": "simulation-001-web-development",
+        "project": "web-development",
+        "status": "success"
+      },
+      "timestamp": 1748050701.4239626,
+      "formatted": "otel_claude_code_tool_usage_total{tool_name=\"Read\",session_id=\"simulation-001-web-development\",project=\"web-development\",status=\"success\"} 1 1748050701423"
+    },
+    "otel_claude_code_session_duration_seconds_-8610197077691143045": {
+      "name": "otel_claude_code_session_duration_seconds",
+      "value": 600,
+      "labels": {
+        "session_id": "simulation-001-web-development",
+        "status": "completed",
+        "project": "web-development"
+      },
+      "timestamp": 1748050701.4254014,
+      "formatted": "otel_claude_code_session_duration_seconds{session_id=\"simulation-001-web-development\",status=\"completed\",project=\"web-development\"} 600 1748050701425"
+    },
+    "otel_claude_code_token_usage_tokens_total_-3492377368995592011": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1000,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "input",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "timestamp": 1748050701.4299717,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"input\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 1000 1748050701429"
+    },
+    "otel_claude_code_token_usage_tokens_total_-7095621061696516637": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 750,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "output",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "timestamp": 1748050701.431011,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"output\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 750 1748050701431"
+    },
+    "otel_claude_code_cost_usd_3081185010320087301": {
+      "name": "otel_claude_code_cost_usd",
+      "value": 0.25,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "timestamp": 1748050701.43209,
+      "formatted": "otel_claude_code_cost_usd{model=\"claude-3-sonnet\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 0.25 1748050701432"
+    },
+    "otel_claude_code_token_usage_tokens_total_-1624240682313090726": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1000,
+      "labels": {
+        "model": "claude-3-haiku",
+        "token_type": "input",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "timestamp": 1748050701.4333181,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-haiku\",token_type=\"input\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 1000 1748050701433"
+    },
+    "otel_claude_code_token_usage_tokens_total_-8219070688256528592": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 750,
+      "labels": {
+        "model": "claude-3-haiku",
+        "token_type": "output",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "timestamp": 1748050701.4351246,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-haiku\",token_type=\"output\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 750 1748050701435"
+    },
+    "otel_claude_code_cost_usd_1724945244048896839": {
+      "name": "otel_claude_code_cost_usd",
+      "value": 0.25,
+      "labels": {
+        "model": "claude-3-haiku",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "timestamp": 1748050701.436143,
+      "formatted": "otel_claude_code_cost_usd{model=\"claude-3-haiku\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 0.25 1748050701436"
+    },
+    "otel_claude_code_token_usage_tokens_total_983334332868323399": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1000,
+      "labels": {
+        "model": "claude-3-opus",
+        "token_type": "input",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "timestamp": 1748050701.4371476,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-opus\",token_type=\"input\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 1000 1748050701437"
+    },
+    "otel_claude_code_token_usage_tokens_total_3753629335056863973": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 750,
+      "labels": {
+        "model": "claude-3-opus",
+        "token_type": "output",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "timestamp": 1748050701.4406593,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-opus\",token_type=\"output\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 750 1748050701440"
+    },
+    "otel_claude_code_cost_usd_-6310252752179290383": {
+      "name": "otel_claude_code_cost_usd",
+      "value": 0.25,
+      "labels": {
+        "model": "claude-3-opus",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis"
+      },
+      "timestamp": 1748050701.4464462,
+      "formatted": "otel_claude_code_cost_usd{model=\"claude-3-opus\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\"} 0.25 1748050701446"
+    },
+    "otel_claude_code_tool_usage_total_-5555255638051546379": {
+      "name": "otel_claude_code_tool_usage_total",
+      "value": 1,
+      "labels": {
+        "tool_name": "Read",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis",
+        "status": "success"
+      },
+      "timestamp": 1748050701.448844,
+      "formatted": "otel_claude_code_tool_usage_total{tool_name=\"Read\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\",status=\"success\"} 1 1748050701448"
+    },
+    "otel_claude_code_tool_usage_total_-7078823153302209747": {
+      "name": "otel_claude_code_tool_usage_total",
+      "value": 2,
+      "labels": {
+        "tool_name": "Write",
+        "session_id": "simulation-001-data-analysis",
+        "project": "data-analysis",
+        "status": "success"
+      },
+      "timestamp": 1748050701.4513085,
+      "formatted": "otel_claude_code_tool_usage_total{tool_name=\"Write\",session_id=\"simulation-001-data-analysis\",project=\"data-analysis\",status=\"success\"} 2 1748050701451"
+    },
+    "otel_claude_code_session_duration_seconds_7303774926970125365": {
+      "name": "otel_claude_code_session_duration_seconds",
+      "value": 900,
+      "labels": {
+        "session_id": "simulation-001-data-analysis",
+        "status": "completed",
+        "project": "data-analysis"
+      },
+      "timestamp": 1748050701.452477,
+      "formatted": "otel_claude_code_session_duration_seconds{session_id=\"simulation-001-data-analysis\",status=\"completed\",project=\"data-analysis\"} 900 1748050701452"
+    },
+    "otel_claude_code_token_usage_tokens_total_5534796805537348395": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1200,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "input",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "timestamp": 1748050701.4534383,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"input\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 1200 1748050701453"
+    },
+    "otel_claude_code_token_usage_tokens_total_6850383268649682462": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 900,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "output",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "timestamp": 1748050701.4551125,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"output\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 900 1748050701455"
+    },
+    "otel_claude_code_cost_usd_-1133550616038084890": {
+      "name": "otel_claude_code_cost_usd",
+      "value": 0.30000000000000004,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "timestamp": 1748050701.4565194,
+      "formatted": "otel_claude_code_cost_usd{model=\"claude-3-sonnet\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 0.30000000000000004 1748050701456"
+    },
+    "otel_claude_code_token_usage_tokens_total_2154503923852368413": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1200,
+      "labels": {
+        "model": "claude-3-haiku",
+        "token_type": "input",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "timestamp": 1748050701.4592597,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-haiku\",token_type=\"input\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 1200 1748050701459"
+    },
+    "otel_claude_code_token_usage_tokens_total_6628916032511764310": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 900,
+      "labels": {
+        "model": "claude-3-haiku",
+        "token_type": "output",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "timestamp": 1748050701.4632332,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-haiku\",token_type=\"output\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 900 1748050701463"
+    },
+    "otel_claude_code_cost_usd_5683160535035583851": {
+      "name": "otel_claude_code_cost_usd",
+      "value": 0.30000000000000004,
+      "labels": {
+        "model": "claude-3-haiku",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "timestamp": 1748050701.4643478,
+      "formatted": "otel_claude_code_cost_usd{model=\"claude-3-haiku\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 0.30000000000000004 1748050701464"
+    },
+    "otel_claude_code_token_usage_tokens_total_532311613135474747": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1200,
+      "labels": {
+        "model": "claude-3-opus",
+        "token_type": "input",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "timestamp": 1748050701.4683,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-opus\",token_type=\"input\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 1200 1748050701468"
+    },
+    "otel_claude_code_token_usage_tokens_total_4104214811500727356": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 900,
+      "labels": {
+        "model": "claude-3-opus",
+        "token_type": "output",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "timestamp": 1748050701.4704115,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-opus\",token_type=\"output\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 900 1748050701470"
+    },
+    "otel_claude_code_cost_usd_-4588637204704173558": {
+      "name": "otel_claude_code_cost_usd",
+      "value": 0.30000000000000004,
+      "labels": {
+        "model": "claude-3-opus",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning"
+      },
+      "timestamp": 1748050701.5104594,
+      "formatted": "otel_claude_code_cost_usd{model=\"claude-3-opus\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\"} 0.30000000000000004 1748050701510"
+    },
+    "otel_claude_code_tool_usage_total_6621486764854851313": {
+      "name": "otel_claude_code_tool_usage_total",
+      "value": 1,
+      "labels": {
+        "tool_name": "Read",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning",
+        "status": "success"
+      },
+      "timestamp": 1748050701.5119672,
+      "formatted": "otel_claude_code_tool_usage_total{tool_name=\"Read\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\",status=\"success\"} 1 1748050701511"
+    },
+    "otel_claude_code_tool_usage_total_4864136781355524692": {
+      "name": "otel_claude_code_tool_usage_total",
+      "value": 2,
+      "labels": {
+        "tool_name": "Write",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning",
+        "status": "success"
+      },
+      "timestamp": 1748050701.51337,
+      "formatted": "otel_claude_code_tool_usage_total{tool_name=\"Write\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\",status=\"success\"} 2 1748050701513"
+    },
+    "otel_claude_code_tool_usage_total_599476759849527809": {
+      "name": "otel_claude_code_tool_usage_total",
+      "value": 3,
+      "labels": {
+        "tool_name": "Edit",
+        "session_id": "simulation-001-machine-learning",
+        "project": "machine-learning",
+        "status": "success"
+      },
+      "timestamp": 1748050701.5232651,
+      "formatted": "otel_claude_code_tool_usage_total{tool_name=\"Edit\",session_id=\"simulation-001-machine-learning\",project=\"machine-learning\",status=\"success\"} 3 1748050701523"
+    },
+    "otel_claude_code_session_duration_seconds_-824013222901515870": {
+      "name": "otel_claude_code_session_duration_seconds",
+      "value": 1200,
+      "labels": {
+        "session_id": "simulation-001-machine-learning",
+        "status": "completed",
+        "project": "machine-learning"
+      },
+      "timestamp": 1748050701.5247028,
+      "formatted": "otel_claude_code_session_duration_seconds{session_id=\"simulation-001-machine-learning\",status=\"completed\",project=\"machine-learning\"} 1200 1748050701524"
+    },
+    "otel_claude_code_token_usage_tokens_total_-5024404149712902948": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1400,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "input",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "timestamp": 1748050701.5330448,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"input\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 1400 1748050701533"
+    },
+    "otel_claude_code_token_usage_tokens_total_-3626452709157486918": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1050,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "output",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "timestamp": 1748050701.5345106,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"output\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 1050 1748050701534"
+    },
+    "otel_claude_code_cost_usd_-1705189072948169093": {
+      "name": "otel_claude_code_cost_usd",
+      "value": 0.35000000000000003,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "timestamp": 1748050701.5358107,
+      "formatted": "otel_claude_code_cost_usd{model=\"claude-3-sonnet\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 0.35000000000000003 1748050701535"
+    },
+    "otel_claude_code_token_usage_tokens_total_8597096758765273647": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1400,
+      "labels": {
+        "model": "claude-3-haiku",
+        "token_type": "input",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "timestamp": 1748050701.547216,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-haiku\",token_type=\"input\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 1400 1748050701547"
+    },
+    "otel_claude_code_token_usage_tokens_total_-232482441548419654": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1050,
+      "labels": {
+        "model": "claude-3-haiku",
+        "token_type": "output",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "timestamp": 1748050701.5488303,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-haiku\",token_type=\"output\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 1050 1748050701548"
+    },
+    "otel_claude_code_cost_usd_-1987253034851191086": {
+      "name": "otel_claude_code_cost_usd",
+      "value": 0.35000000000000003,
+      "labels": {
+        "model": "claude-3-haiku",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "timestamp": 1748050701.5546844,
+      "formatted": "otel_claude_code_cost_usd{model=\"claude-3-haiku\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 0.35000000000000003 1748050701554"
+    },
+    "otel_claude_code_token_usage_tokens_total_1217809069750870487": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1400,
+      "labels": {
+        "model": "claude-3-opus",
+        "token_type": "input",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "timestamp": 1748050701.5558636,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-opus\",token_type=\"input\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 1400 1748050701555"
+    },
+    "otel_claude_code_token_usage_tokens_total_-1237602290853340113": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1050,
+      "labels": {
+        "model": "claude-3-opus",
+        "token_type": "output",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "timestamp": 1748050701.5568707,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-opus\",token_type=\"output\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 1050 1748050701556"
+    },
+    "otel_claude_code_cost_usd_8154535636124786200": {
+      "name": "otel_claude_code_cost_usd",
+      "value": 0.35000000000000003,
+      "labels": {
+        "model": "claude-3-opus",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure"
+      },
+      "timestamp": 1748050701.5620995,
+      "formatted": "otel_claude_code_cost_usd{model=\"claude-3-opus\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\"} 0.35000000000000003 1748050701562"
+    },
+    "otel_claude_code_tool_usage_total_-1970760602443424047": {
+      "name": "otel_claude_code_tool_usage_total",
+      "value": 1,
+      "labels": {
+        "tool_name": "Read",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure",
+        "status": "success"
+      },
+      "timestamp": 1748050701.5631332,
+      "formatted": "otel_claude_code_tool_usage_total{tool_name=\"Read\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\",status=\"success\"} 1 1748050701563"
+    },
+    "otel_claude_code_tool_usage_total_5377591562042036761": {
+      "name": "otel_claude_code_tool_usage_total",
+      "value": 2,
+      "labels": {
+        "tool_name": "Write",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure",
+        "status": "success"
+      },
+      "timestamp": 1748050701.5641816,
+      "formatted": "otel_claude_code_tool_usage_total{tool_name=\"Write\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\",status=\"success\"} 2 1748050701564"
+    },
+    "otel_claude_code_tool_usage_total_7674971263992706592": {
+      "name": "otel_claude_code_tool_usage_total",
+      "value": 3,
+      "labels": {
+        "tool_name": "Edit",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure",
+        "status": "success"
+      },
+      "timestamp": 1748050701.565174,
+      "formatted": "otel_claude_code_tool_usage_total{tool_name=\"Edit\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\",status=\"success\"} 3 1748050701565"
+    },
+    "otel_claude_code_tool_usage_total_6869450938826840930": {
+      "name": "otel_claude_code_tool_usage_total",
+      "value": 4,
+      "labels": {
+        "tool_name": "Bash",
+        "session_id": "simulation-001-infrastructure",
+        "project": "infrastructure",
+        "status": "success"
+      },
+      "timestamp": 1748050701.5704985,
+      "formatted": "otel_claude_code_tool_usage_total{tool_name=\"Bash\",session_id=\"simulation-001-infrastructure\",project=\"infrastructure\",status=\"success\"} 4 1748050701570"
+    },
+    "otel_claude_code_session_duration_seconds_-812310192068305715": {
+      "name": "otel_claude_code_session_duration_seconds",
+      "value": 1500,
+      "labels": {
+        "session_id": "simulation-001-infrastructure",
+        "status": "completed",
+        "project": "infrastructure"
+      },
+      "timestamp": 1748050701.5716379,
+      "formatted": "otel_claude_code_session_duration_seconds{session_id=\"simulation-001-infrastructure\",status=\"completed\",project=\"infrastructure\"} 1500 1748050701571"
+    },
+    "otel_claude_code_error_total_-8782056959870368854": {
+      "name": "otel_claude_code_error_total",
+      "value": 1,
+      "labels": {
+        "error_type": "timeout",
+        "session_id": "simulation-001-web-development",
+        "tool_name": "WebFetch"
+      },
+      "timestamp": 1748050701.572789,
+      "formatted": "otel_claude_code_error_total{error_type=\"timeout\",session_id=\"simulation-001-web-development\",tool_name=\"WebFetch\"} 1 1748050701572"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+graph TB
+    subgraph "Claude Code Metrics Enhanced Dashboard"
+        subgraph "Row 1 - Key Metrics (4 units high)"
+            S1[Total Sessions<br/>Counter: session_count_total]
+            S2[Total Tokens Used<br/>Counter: token_usage_tokens_total]
+            S3[Total Cost USD<br/>Counter: cost_usage_USD_total]
+            S4[Total Commits<br/>Counter: commit_count_total]
+        end
+        
+        subgraph "Row 2 - Usage Trends (8 units high)"
+            TS1[Token Usage Rate by Type<br/>Time Series<br/>Grouped by: type]
+            TS2[Cost Rate by Model<br/>Time Series<br/>Grouped by: model]
+        end
+        
+        subgraph "Row 3 - Model Breakdown (8 units high)"
+            T1[Usage by Model<br/>Table View<br/>Shows: Tokens & Cost per model]
+        end
+        
+        subgraph "Row 4 - Activity Analysis (8 units high)"
+            TS3[Hourly Token Usage<br/>Stacked Bar Chart<br/>Grouped by: model]
+            TS4[Activity Rate<br/>Time Series<br/>Sessions/sec & Commits/sec]
+        end
+    end
+    
+    style S1 fill:#2d4a2b,stroke:#73bf69,color:#fff
+    style S2 fill:#4a4a2b,stroke:#f2cc0c,color:#fff
+    style S3 fill:#4a4a2b,stroke:#f2cc0c,color:#fff
+    style S4 fill:#2d4a2b,stroke:#73bf69,color:#fff

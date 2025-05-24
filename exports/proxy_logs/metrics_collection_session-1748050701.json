@@ -1,0 +1,291 @@
+{
+  "config": {
+    "enabled": true,
+    "log_level": "INFO",
+    "output_format": "both",
+    "verify_payloads": true,
+    "simulate_prometheus": true,
+    "metrics": {
+      "otel_claude_code_token_usage_tokens_total": {
+        "name": "otel_claude_code_token_usage_tokens_total",
+        "metric_type": "counter",
+        "labels": [
+          "model",
+          "token_type",
+          "session_id",
+          "project"
+        ],
+        "validation_rules": {
+          "required_fields": [
+            "value",
+            "labels"
+          ],
+          "required_labels": [
+            "model",
+            "token_type"
+          ],
+          "value_range": [
+            0,
+            1000000
+          ],
+          "allowed_models": [
+            "claude-3-sonnet",
+            "claude-3-haiku",
+            "claude-3-opus"
+          ]
+        },
+        "prometheus_format": "# HELP otel_claude_code_token_usage_tokens_total Total tokens used in Claude Code sessions\n# TYPE otel_claude_code_token_usage_tokens_total counter\n",
+        "description": "Total number of tokens used in Claude Code sessions"
+      },
+      "otel_claude_code_session_duration_seconds": {
+        "name": "otel_claude_code_session_duration_seconds",
+        "metric_type": "histogram",
+        "labels": [
+          "session_id",
+          "status",
+          "project"
+        ],
+        "validation_rules": {
+          "required_fields": [
+            "value"
+          ],
+          "value_range": [
+            0,
+            86400
+          ],
+          "allowed_statuses": [
+            "active",
+            "completed",
+            "failed",
+            "timeout"
+          ]
+        },
+        "prometheus_format": "# HELP otel_claude_code_session_duration_seconds Duration of Claude Code sessions\n# TYPE otel_claude_code_session_duration_seconds histogram\n",
+        "description": "Duration of Claude Code sessions in seconds"
+      },
+      "otel_claude_code_cost_usd": {
+        "name": "otel_claude_code_cost_usd",
+        "metric_type": "gauge",
+        "labels": [
+          "model",
+          "session_id",
+          "project"
+        ],
+        "validation_rules": {
+          "required_fields": [
+            "value"
+          ],
+          "value_range": [
+            0,
+            1000
+          ]
+        },
+        "prometheus_format": "# HELP otel_claude_code_cost_usd Estimated cost in USD for Claude Code usage\n# TYPE otel_claude_code_cost_usd gauge\n",
+        "description": "Estimated cost in USD for Claude Code usage"
+      },
+      "otel_claude_code_tool_usage_total": {
+        "name": "otel_claude_code_tool_usage_total",
+        "metric_type": "counter",
+        "labels": [
+          "tool_name",
+          "session_id",
+          "project",
+          "status"
+        ],
+        "validation_rules": {
+          "required_fields": [
+            "value",
+            "labels"
+          ],
+          "required_labels": [
+            "tool_name"
+          ],
+          "value_range": [
+            0,
+            10000
+          ]
+        },
+        "prometheus_format": "# HELP otel_claude_code_tool_usage_total Number of tool invocations in Claude Code\n# TYPE otel_claude_code_tool_usage_total counter\n",
+        "description": "Number of tool invocations in Claude Code sessions"
+      },
+      "otel_claude_code_error_total": {
+        "name": "otel_claude_code_error_total",
+        "metric_type": "counter",
+        "labels": [
+          "error_type",
+          "session_id",
+          "tool_name"
+        ],
+        "validation_rules": {
+          "required_fields": [
+            "value",
+            "labels"
+          ],
+          "required_labels": [
+            "error_type"
+          ],
+          "value_range": [
+            0,
+            1000
+          ]
+        },
+        "prometheus_format": "# HELP otel_claude_code_error_total Number of errors in Claude Code sessions\n# TYPE otel_claude_code_error_total counter\n",
+        "description": "Number of errors encountered in Claude Code sessions"
+      }
+    },
+    "thresholds": {
+      "max_tokens_per_minute": 10000,
+      "max_cost_per_hour": 15.0,
+      "max_session_duration": 7200,
+      "cost_warning_threshold": 5.0,
+      "cost_critical_threshold": 20.0
+    },
+    "export_path": "exports/proxy_logs"
+  },
+  "session_summary": {
+    "total_metrics": 4,
+    "metric_types": [
+      "otel_claude_code_error_total",
+      "otel_claude_code_session_duration_seconds",
+      "otel_claude_code_tool_usage_total"
+    ],
+    "start_time": 1748050701.2691934,
+    "end_time": 1748050701.3300211
+  },
+  "metrics": [
+    {
+      "metric_name": "otel_claude_code_tool_usage_total",
+      "value": 1,
+      "labels": {
+        "tool_name": "metrics_collector",
+        "session_id": "session-1748050701",
+        "project": "claude-code-metrics-lab",
+        "status": "started"
+      },
+      "metadata": {
+        "action": "collect_metrics",
+        "days": 7
+      },
+      "timestamp": 1748050701.2691934,
+      "iso_timestamp": "2025-05-23T21:38:21.269193",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_tool_usage_total"
+      },
+      "prometheus_format": "otel_claude_code_tool_usage_total{tool_name=\"metrics_collector\",session_id=\"session-1748050701\",project=\"claude-code-metrics-lab\",status=\"started\"} 1 1748050701269"
+    },
+    {
+      "metric_name": "otel_claude_code_error_total",
+      "value": 1,
+      "labels": {
+        "error_type": "prometheus_connection",
+        "session_id": "session-1748050701",
+        "tool_name": "metrics_collector"
+      },
+      "metadata": {},
+      "timestamp": 1748050701.3227568,
+      "iso_timestamp": "2025-05-23T21:38:21.322757",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_error_total"
+      },
+      "prometheus_format": "otel_claude_code_error_total{error_type=\"prometheus_connection\",session_id=\"session-1748050701\",tool_name=\"metrics_collector\"} 1 1748050701322"
+    },
+    {
+      "metric_name": "otel_claude_code_tool_usage_total",
+      "value": 1,
+      "labels": {
+        "tool_name": "file_exporter",
+        "session_id": "session-1748050701",
+        "project": "claude-code-metrics-lab",
+        "status": "success"
+      },
+      "metadata": {
+        "export_file": "exports/claude_metrics_20250523_213821.json"
+      },
+      "timestamp": 1748050701.3275328,
+      "iso_timestamp": "2025-05-23T21:38:21.327533",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_tool_usage_total"
+      },
+      "prometheus_format": "otel_claude_code_tool_usage_total{tool_name=\"file_exporter\",session_id=\"session-1748050701\",project=\"claude-code-metrics-lab\",status=\"success\"} 1 1748050701327"
+    },
+    {
+      "metric_name": "otel_claude_code_session_duration_seconds",
+      "value": 0.05833935737609863,
+      "labels": {
+        "session_id": "session-1748050701",
+        "status": "completed",
+        "project": "claude-code-metrics-lab"
+      },
+      "metadata": {
+        "metrics_logged": 3,
+        "validation_success_rate": 1.0
+      },
+      "timestamp": 1748050701.3300211,
+      "iso_timestamp": "2025-05-23T21:38:21.330021",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_session_duration_seconds"
+      },
+      "prometheus_format": "otel_claude_code_session_duration_seconds{session_id=\"session-1748050701\",status=\"completed\",project=\"claude-code-metrics-lab\"} 0.05833935737609863 1748050701330"
+    }
+  ],
+  "prometheus_store": {
+    "otel_claude_code_tool_usage_total_7979723006928958998": {
+      "name": "otel_claude_code_tool_usage_total",
+      "value": 1,
+      "labels": {
+        "tool_name": "metrics_collector",
+        "session_id": "session-1748050701",
+        "project": "claude-code-metrics-lab",
+        "status": "started"
+      },
+      "timestamp": 1748050701.2691934,
+      "formatted": "otel_claude_code_tool_usage_total{tool_name=\"metrics_collector\",session_id=\"session-1748050701\",project=\"claude-code-metrics-lab\",status=\"started\"} 1 1748050701269"
+    },
+    "otel_claude_code_error_total_-3338517460457531045": {
+      "name": "otel_claude_code_error_total",
+      "value": 1,
+      "labels": {
+        "error_type": "prometheus_connection",
+        "session_id": "session-1748050701",
+        "tool_name": "metrics_collector"
+      },
+      "timestamp": 1748050701.3227568,
+      "formatted": "otel_claude_code_error_total{error_type=\"prometheus_connection\",session_id=\"session-1748050701\",tool_name=\"metrics_collector\"} 1 1748050701322"
+    },
+    "otel_claude_code_tool_usage_total_-5136819978468366002": {
+      "name": "otel_claude_code_tool_usage_total",
+      "value": 1,
+      "labels": {
+        "tool_name": "file_exporter",
+        "session_id": "session-1748050701",
+        "project": "claude-code-metrics-lab",
+        "status": "success"
+      },
+      "timestamp": 1748050701.3275328,
+      "formatted": "otel_claude_code_tool_usage_total{tool_name=\"file_exporter\",session_id=\"session-1748050701\",project=\"claude-code-metrics-lab\",status=\"success\"} 1 1748050701327"
+    },
+    "otel_claude_code_session_duration_seconds_7528055183521966709": {
+      "name": "otel_claude_code_session_duration_seconds",
+      "value": 0.05833935737609863,
+      "labels": {
+        "session_id": "session-1748050701",
+        "status": "completed",
+        "project": "claude-code-metrics-lab"
+      },
+      "timestamp": 1748050701.3300211,
+      "formatted": "otel_claude_code_session_duration_seconds{session_id=\"session-1748050701\",status=\"completed\",project=\"claude-code-metrics-lab\"} 0.05833935737609863 1748050701330"
+    }
+  }
+}

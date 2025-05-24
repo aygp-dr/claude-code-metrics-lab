@@ -1,0 +1,238 @@
+```mermaid
+graph TB
+    subgraph "Educational Telemetry Architecture"
+        subgraph "Layer 1: Application Instrumentation"
+            A1[Claude Code Events]
+            A2[Metric Generation]
+            A3[Local Validation]
+            A1 --> A2 --> A3
+        end
+
+        subgraph "Layer 2: Collection & Transformation"
+            B1[Logging Proxy<br/>🔍 Debugging Layer]
+            B2[OTLP Collector]
+            B3[Protocol Validation]
+            A3 --> B1
+            B1 --> B2 --> B3
+        end
+
+        subgraph "Layer 3: Storage & Querying"
+            C1[Prometheus TSDB]
+            C2[Query Interface]
+            C3[Data Integrity Checks]
+            B3 --> C1 --> C2 --> C3
+        end
+
+        subgraph "Layer 4: Visualization & Alerting"
+            D1[Grafana Dashboards]
+            D2[Alert Manager]
+            D3[Visual Validation]
+            C3 --> D1
+            C3 --> D2
+            D1 --> D3
+        end
+    end
+
+    subgraph "Configuration Matrix"
+        E1[Environment Variables<br/>CLAUDE_CODE_ENABLE_TELEMETRY=1<br/>OTEL_METRICS_EXPORTER=otlp<br/>OTEL_EXPORTER_OTLP_PROTOCOL=grpc<br/>OTEL_EXPORTER_OTLP_ENDPOINT=http://pi.lan:4317<br/>OTEL_METRIC_EXPORT_INTERVAL=10000]
+        E2[Validation Rules<br/>config/logging_proxy.yaml]
+        E3[Test Scenarios<br/>Permutation Matrix]
+    end
+
+    subgraph "Debugging Tools"
+        F1[Console Exporter<br/>👀 Local Inspection]
+        F2[Logging Exporter<br/>📝 File Analysis] 
+        F3[Proxy Simulator<br/>🧪 Validation Testing]
+        F4[Protocol Inspector<br/>🔬 Network Analysis]
+    end
+
+    E1 -.-> A2
+    E2 -.-> B1
+    E3 -.-> F3
+    
+    F1 -.-> A3
+    F2 -.-> B1
+    F3 -.-> B2
+    F4 -.-> B3
+
+    classDef layer1 fill:#e1f5fe
+    classDef layer2 fill:#f3e5f5
+    classDef layer3 fill:#e8f5e8
+    classDef layer4 fill:#fff3e0
+    classDef config fill:#fce4ec
+    classDef debug fill:#f1f8e9
+
+    class A1,A2,A3 layer1
+    class B1,B2,B3 layer2
+    class C1,C2,C3 layer3
+    class D1,D2,D3 layer4
+    class E1,E2,E3 config
+    class F1,F2,F3,F4 debug
+```
+
+---
+
+```mermaid
+graph LR
+    subgraph "Data Flow: Code to Dashboard"
+        A[Claude Code<br/>Tool Execution] --> B[Metric Event<br/>Generation]
+        B --> C[Local Validation<br/>& Formatting]
+        C --> D{Exporter<br/>Configuration}
+        
+        D -->|console| E1[Console Output<br/>🖥️ stdout]
+        D -->|logging| E2[Log Files<br/>📄 proxy.log]
+        D -->|otlp+grpc| E3[OTLP Collector<br/>🌐 gRPC Protocol]
+        D -->|otlp+http| E4[OTLP Collector<br/>🌐 HTTP Protocol]
+        D -->|prometheus| E5[Prometheus Scrape<br/>📊 /metrics endpoint]
+        
+        E3 --> F[Prometheus TSDB<br/>⏱️ Time Series]
+        E4 --> F
+        E5 --> F
+        
+        F --> G[PromQL Queries<br/>🔍 Data Analysis]
+        G --> H[Grafana Dashboard<br/>📈 Visualization]
+        G --> I[Alert Rules<br/>🚨 Notifications]
+    end
+
+    subgraph "Debugging Touchpoints"
+        J1[🔬 Payload Inspection<br/>JSON Structure]
+        J2[🌐 Network Debugging<br/>Protocol Analysis]  
+        J3[📊 Query Validation<br/>Result Verification]
+        J4[🎨 Visual Testing<br/>Dashboard Validation]
+    end
+
+    C -.-> J1
+    E3 -.-> J2
+    E4 -.-> J2
+    G -.-> J3
+    H -.-> J4
+
+    classDef code fill:#e3f2fd
+    classDef transport fill:#f3e5f5
+    classDef storage fill:#e8f5e8
+    classDef visual fill:#fff3e0
+    classDef debug fill:#ffebee
+
+    class A,B,C code
+    class D,E1,E2,E3,E4,E5 transport
+    class F,G storage
+    class H,I visual
+    class J1,J2,J3,J4 debug
+```
+
+---
+
+```mermaid
+graph TB
+    subgraph "Test Matrix Architecture"
+        subgraph "Configuration Dimensions"
+            T1[Exporter Types<br/>otlp | prometheus | console | logging]
+            T2[Protocols<br/>grpc | http/protobuf | http/json]
+            T3[Endpoints<br/>local | remote | invalid | unreachable]
+            T4[Intervals<br/>1s | 5s | 10s | 30s | 60s]
+        end
+
+        subgraph "Test Scenarios"
+            S1[✅ Happy Path<br/>Valid config → Expected output]
+            S2[⚠️ Error Conditions<br/>Invalid config → Graceful failure]
+            S3[🔄 Recovery Testing<br/>Failure → Reconnection]
+            S4[📊 Performance Testing<br/>Load → Throughput limits]
+        end
+
+        subgraph "Validation Points"
+            V1[📝 Payload Structure<br/>Schema compliance]
+            V2[🌐 Network Protocol<br/>OTLP specification]
+            V3[💾 Storage Format<br/>Prometheus metrics]
+            V4[🎯 Query Results<br/>Data accuracy]
+        end
+
+        T1 --> S1
+        T2 --> S1
+        T3 --> S2
+        T4 --> S4
+        
+        S1 --> V1
+        S2 --> V2
+        S3 --> V3
+        S4 --> V4
+    end
+
+    subgraph "Implementation Matrix"
+        M1[Local Development<br/>🏠 console + logging exporters]
+        M2[Integration Testing<br/>🔧 otlp + local collector]
+        M3[Staging Environment<br/>🚀 otlp + remote collector] 
+        M4[Production Setup<br/>⚡ otlp + multiple collectors]
+    end
+
+    V1 -.-> M1
+    V2 -.-> M2
+    V3 -.-> M3
+    V4 -.-> M4
+
+    classDef config fill:#e8f5e8
+    classDef test fill:#fff3e0
+    classDef validate fill:#f3e5f5
+    classDef implement fill:#e1f5fe
+
+    class T1,T2,T3,T4 config
+    class S1,S2,S3,S4 test
+    class V1,V2,V3,V4 validate
+    class M1,M2,M3,M4 implement
+```
+
+---
+
+```mermaid
+flowchart TD
+    subgraph "Contract-Driven Development"
+        subgraph "API Contracts"
+            API1[Metric Schema<br/>JSON Schema definitions]
+            API2[OTLP Protocol<br/>gRPC/HTTP specifications]
+            API3[Storage Interface<br/>Prometheus query API]
+            API4[Visualization Contract<br/>Grafana JSON model]
+        end
+
+        subgraph "Validation Contracts"
+            VAL1[Input Validation<br/>Required fields, types, ranges]
+            VAL2[Protocol Validation<br/>Message format compliance]
+            VAL3[Query Validation<br/>Result format verification]
+            VAL4[Display Validation<br/>Visual regression testing]
+        end
+
+        subgraph "Testing Contracts"
+            TEST1[Unit Tests<br/>Individual metric validation]
+            TEST2[Integration Tests<br/>End-to-end pipeline]
+            TEST3[Performance Tests<br/>Load and latency]
+            TEST4[Failure Tests<br/>Error handling scenarios]
+        end
+
+        API1 --> VAL1 --> TEST1
+        API2 --> VAL2 --> TEST2
+        API3 --> VAL3 --> TEST3
+        API4 --> VAL4 --> TEST4
+    end
+
+    subgraph "Educational Progression"
+        LEARN1[📚 Understand Contracts<br/>Read specifications]
+        LEARN2[🔧 Implement Validation<br/>Build testing tools]
+        LEARN3[🧪 Practice Debugging<br/>Simulate failures]
+        LEARN4[🚀 Production Readiness<br/>Monitor & operate]
+
+        LEARN1 --> LEARN2 --> LEARN3 --> LEARN4
+    end
+
+    TEST1 -.-> LEARN2
+    TEST2 -.-> LEARN3
+    TEST3 -.-> LEARN4
+    TEST4 -.-> LEARN4
+
+    classDef api fill:#e3f2fd
+    classDef validation fill:#f3e5f5
+    classDef testing fill:#e8f5e8
+    classDef learning fill:#fff3e0
+
+    class API1,API2,API3,API4 api
+    class VAL1,VAL2,VAL3,VAL4 validation
+    class TEST1,TEST2,TEST3,TEST4 testing
+    class LEARN1,LEARN2,LEARN3,LEARN4 learning
+```

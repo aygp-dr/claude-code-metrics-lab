@@ -6,3 +6,5 @@ exports/*.csv
 .DS_Store
 venv/
 .direnv/
+
+**/.claude/settings.local.json

@@ -1,0 +1,180 @@
+{
+  "config": {
+    "enabled": true,
+    "log_level": "INFO",
+    "output_format": "both",
+    "verify_payloads": true,
+    "simulate_prometheus": true,
+    "metrics": {
+      "otel_claude_code_token_usage_tokens_total": {
+        "name": "otel_claude_code_token_usage_tokens_total",
+        "metric_type": "counter",
+        "labels": [
+          "model",
+          "token_type",
+          "session_id"
+        ],
+        "validation_rules": {
+          "required_fields": [
+            "value",
+            "labels"
+          ],
+          "required_labels": [
+            "model",
+            "token_type"
+          ],
+          "value_range": [
+            0,
+            1000000
+          ]
+        },
+        "prometheus_format": "# HELP otel_claude_code_token_usage_tokens_total Total tokens used\n# TYPE otel_claude_code_token_usage_tokens_total counter",
+        "description": ""
+      },
+      "otel_claude_code_session_duration_seconds": {
+        "name": "otel_claude_code_session_duration_seconds",
+        "metric_type": "histogram",
+        "labels": [
+          "session_id",
+          "status"
+        ],
+        "validation_rules": {
+          "required_fields": [
+            "value"
+          ],
+          "value_range": [
+            0,
+            86400
+          ]
+        },
+        "prometheus_format": "# HELP otel_claude_code_session_duration_seconds Session duration\n# TYPE otel_claude_code_session_duration_seconds histogram",
+        "description": ""
+      },
+      "otel_claude_code_cost_usd": {
+        "name": "otel_claude_code_cost_usd",
+        "metric_type": "gauge",
+        "labels": [
+          "model",
+          "session_id"
+        ],
+        "validation_rules": {
+          "required_fields": [
+            "value"
+          ],
+          "value_range": [
+            0,
+            1000
+          ]
+        },
+        "prometheus_format": "# HELP otel_claude_code_cost_usd Estimated cost in USD\n# TYPE otel_claude_code_cost_usd gauge",
+        "description": ""
+      }
+    },
+    "thresholds": {
+      "max_tokens_per_minute": 10000,
+      "max_cost_per_hour": 10.0,
+      "max_session_duration": 3600
+    },
+    "export_path": "exports/proxy_logs"
+  },
+  "session_summary": {
+    "total_metrics": 3,
+    "metric_types": [
+      "otel_claude_code_token_usage_tokens_total",
+      "otel_claude_code_session_duration_seconds",
+      "otel_claude_code_cost_usd"
+    ],
+    "start_time": 1748053036.9737377,
+    "end_time": 1748053036.9764156
+  },
+  "metrics": [
+    {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1500,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "input",
+        "session_id": "test-001"
+      },
+      "metadata": {},
+      "timestamp": 1748053036.9737377,
+      "iso_timestamp": "2025-05-23T22:17:16.973738",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_token_usage_tokens_total"
+      },
+      "prometheus_format": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"input\",session_id=\"test-001\"} 1500 1748053036973"
+    },
+    {
+      "metric_name": "otel_claude_code_cost_usd",
+      "value": 0.75,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "session_id": "test-001"
+      },
+      "metadata": {},
+      "timestamp": 1748053036.9752033,
+      "iso_timestamp": "2025-05-23T22:17:16.975203",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_cost_usd"
+      },
+      "prometheus_format": "otel_claude_code_cost_usd{model=\"claude-3-sonnet\",session_id=\"test-001\"} 0.75 1748053036975"
+    },
+    {
+      "metric_name": "otel_claude_code_session_duration_seconds",
+      "value": 300,
+      "labels": {
+        "session_id": "test-001",
+        "status": "completed"
+      },
+      "metadata": {},
+      "timestamp": 1748053036.9764156,
+      "iso_timestamp": "2025-05-23T22:17:16.976416",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "metric_name": "otel_claude_code_session_duration_seconds"
+      },
+      "prometheus_format": "otel_claude_code_session_duration_seconds{session_id=\"test-001\",status=\"completed\"} 300 1748053036976"
+    }
+  ],
+  "prometheus_store": {
+    "otel_claude_code_token_usage_tokens_total_-8695051600773665549": {
+      "name": "otel_claude_code_token_usage_tokens_total",
+      "value": 1500,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "token_type": "input",
+        "session_id": "test-001"
+      },
+      "timestamp": 1748053036.9737377,
+      "formatted": "otel_claude_code_token_usage_tokens_total{model=\"claude-3-sonnet\",token_type=\"input\",session_id=\"test-001\"} 1500 1748053036973"
+    },
+    "otel_claude_code_cost_usd_-5734273875724789432": {
+      "name": "otel_claude_code_cost_usd",
+      "value": 0.75,
+      "labels": {
+        "model": "claude-3-sonnet",
+        "session_id": "test-001"
+      },
+      "timestamp": 1748053036.9752033,
+      "formatted": "otel_claude_code_cost_usd{model=\"claude-3-sonnet\",session_id=\"test-001\"} 0.75 1748053036975"
+    },
+    "otel_claude_code_session_duration_seconds_-98656945418799660": {
+      "name": "otel_claude_code_session_duration_seconds",
+      "value": 300,
+      "labels": {
+        "session_id": "test-001",
+        "status": "completed"
+      },
+      "timestamp": 1748053036.9764156,
+      "formatted": "otel_claude_code_session_duration_seconds{session_id=\"test-001\",status=\"completed\"} 300 1748053036976"
+    }
+  }
+}

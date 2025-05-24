@@ -1,0 +1,540 @@
+- debugging_focus: Local protocol debugging
+  description: OTLP grpc to http://localhost:4317
+  enable_telemetry: true
+  expected_behavior: Local collector ingestion
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://localhost:4317
+  otlp_protocol: grpc
+  timeout: 30000
+- debugging_focus: Local protocol debugging
+  description: OTLP grpc to http://localhost:4317
+  enable_telemetry: true
+  expected_behavior: Local collector ingestion
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://localhost:4317
+  otlp_protocol: grpc
+  timeout: 30000
+- debugging_focus: Local protocol debugging
+  description: OTLP grpc to http://localhost:4318
+  enable_telemetry: true
+  expected_behavior: Local collector ingestion
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://localhost:4318
+  otlp_protocol: grpc
+  timeout: 30000
+- debugging_focus: Local protocol debugging
+  description: OTLP grpc to http://localhost:4318
+  enable_telemetry: true
+  expected_behavior: Local collector ingestion
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://localhost:4318
+  otlp_protocol: grpc
+  timeout: 30000
+- debugging_focus: Network connectivity validation
+  description: OTLP grpc to http://pi.lan:4317
+  enable_telemetry: true
+  expected_behavior: Remote collector transmission
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://pi.lan:4317
+  otlp_protocol: grpc
+  timeout: 30000
+- debugging_focus: Network connectivity validation
+  description: OTLP grpc to http://pi.lan:4317
+  enable_telemetry: true
+  expected_behavior: Remote collector transmission
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://pi.lan:4317
+  otlp_protocol: grpc
+  timeout: 30000
+- debugging_focus: Network connectivity validation
+  description: OTLP grpc to http://pi.lan:4318
+  enable_telemetry: true
+  expected_behavior: Remote collector transmission
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://pi.lan:4318
+  otlp_protocol: grpc
+  timeout: 30000
+- debugging_focus: Network connectivity validation
+  description: OTLP grpc to http://pi.lan:4318
+  enable_telemetry: true
+  expected_behavior: Remote collector transmission
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://pi.lan:4318
+  otlp_protocol: grpc
+  timeout: 30000
+- debugging_focus: Authentication and routing
+  description: OTLP grpc to https://api.honeycomb.io
+  enable_telemetry: true
+  expected_behavior: SaaS provider integration
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: https://api.honeycomb.io
+  otlp_protocol: grpc
+  timeout: 30000
+- debugging_focus: Authentication and routing
+  description: OTLP grpc to https://api.honeycomb.io
+  enable_telemetry: true
+  expected_behavior: SaaS provider integration
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: https://api.honeycomb.io
+  otlp_protocol: grpc
+  timeout: 30000
+- debugging_focus: Failure mode analysis
+  description: OTLP grpc to http://invalid-endpoint
+  enable_telemetry: true
+  expected_behavior: Graceful error handling
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://invalid-endpoint
+  otlp_protocol: grpc
+  timeout: 30000
+- debugging_focus: Failure mode analysis
+  description: OTLP grpc to http://invalid-endpoint
+  enable_telemetry: true
+  expected_behavior: Graceful error handling
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://invalid-endpoint
+  otlp_protocol: grpc
+  timeout: 30000
+- debugging_focus: Failure mode analysis
+  description: OTLP grpc to http://unreachable:4317
+  enable_telemetry: true
+  expected_behavior: Graceful error handling
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://unreachable:4317
+  otlp_protocol: grpc
+  timeout: 30000
+- debugging_focus: Failure mode analysis
+  description: OTLP grpc to http://unreachable:4317
+  enable_telemetry: true
+  expected_behavior: Graceful error handling
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://unreachable:4317
+  otlp_protocol: grpc
+  timeout: 30000
+- debugging_focus: Local protocol debugging
+  description: OTLP http/protobuf to http://localhost:4317
+  enable_telemetry: true
+  expected_behavior: Local collector ingestion
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://localhost:4317
+  otlp_protocol: http/protobuf
+  timeout: 30000
+- debugging_focus: Local protocol debugging
+  description: OTLP http/protobuf to http://localhost:4317
+  enable_telemetry: true
+  expected_behavior: Local collector ingestion
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://localhost:4317
+  otlp_protocol: http/protobuf
+  timeout: 30000
+- debugging_focus: Local protocol debugging
+  description: OTLP http/protobuf to http://localhost:4318
+  enable_telemetry: true
+  expected_behavior: Local collector ingestion
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://localhost:4318
+  otlp_protocol: http/protobuf
+  timeout: 30000
+- debugging_focus: Local protocol debugging
+  description: OTLP http/protobuf to http://localhost:4318
+  enable_telemetry: true
+  expected_behavior: Local collector ingestion
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://localhost:4318
+  otlp_protocol: http/protobuf
+  timeout: 30000
+- debugging_focus: Network connectivity validation
+  description: OTLP http/protobuf to http://pi.lan:4317
+  enable_telemetry: true
+  expected_behavior: Remote collector transmission
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://pi.lan:4317
+  otlp_protocol: http/protobuf
+  timeout: 30000
+- debugging_focus: Network connectivity validation
+  description: OTLP http/protobuf to http://pi.lan:4317
+  enable_telemetry: true
+  expected_behavior: Remote collector transmission
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://pi.lan:4317
+  otlp_protocol: http/protobuf
+  timeout: 30000
+- debugging_focus: Network connectivity validation
+  description: OTLP http/protobuf to http://pi.lan:4318
+  enable_telemetry: true
+  expected_behavior: Remote collector transmission
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://pi.lan:4318
+  otlp_protocol: http/protobuf
+  timeout: 30000
+- debugging_focus: Network connectivity validation
+  description: OTLP http/protobuf to http://pi.lan:4318
+  enable_telemetry: true
+  expected_behavior: Remote collector transmission
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://pi.lan:4318
+  otlp_protocol: http/protobuf
+  timeout: 30000
+- debugging_focus: Authentication and routing
+  description: OTLP http/protobuf to https://api.honeycomb.io
+  enable_telemetry: true
+  expected_behavior: SaaS provider integration
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: https://api.honeycomb.io
+  otlp_protocol: http/protobuf
+  timeout: 30000
+- debugging_focus: Authentication and routing
+  description: OTLP http/protobuf to https://api.honeycomb.io
+  enable_telemetry: true
+  expected_behavior: SaaS provider integration
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: https://api.honeycomb.io
+  otlp_protocol: http/protobuf
+  timeout: 30000
+- debugging_focus: Failure mode analysis
+  description: OTLP http/protobuf to http://invalid-endpoint
+  enable_telemetry: true
+  expected_behavior: Graceful error handling
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://invalid-endpoint
+  otlp_protocol: http/protobuf
+  timeout: 30000
+- debugging_focus: Failure mode analysis
+  description: OTLP http/protobuf to http://invalid-endpoint
+  enable_telemetry: true
+  expected_behavior: Graceful error handling
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://invalid-endpoint
+  otlp_protocol: http/protobuf
+  timeout: 30000
+- debugging_focus: Failure mode analysis
+  description: OTLP http/protobuf to http://unreachable:4317
+  enable_telemetry: true
+  expected_behavior: Graceful error handling
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://unreachable:4317
+  otlp_protocol: http/protobuf
+  timeout: 30000
+- debugging_focus: Failure mode analysis
+  description: OTLP http/protobuf to http://unreachable:4317
+  enable_telemetry: true
+  expected_behavior: Graceful error handling
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://unreachable:4317
+  otlp_protocol: http/protobuf
+  timeout: 30000
+- debugging_focus: Local protocol debugging
+  description: OTLP http/json to http://localhost:4317
+  enable_telemetry: true
+  expected_behavior: Local collector ingestion
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://localhost:4317
+  otlp_protocol: http/json
+  timeout: 30000
+- debugging_focus: Local protocol debugging
+  description: OTLP http/json to http://localhost:4317
+  enable_telemetry: true
+  expected_behavior: Local collector ingestion
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://localhost:4317
+  otlp_protocol: http/json
+  timeout: 30000
+- debugging_focus: Local protocol debugging
+  description: OTLP http/json to http://localhost:4318
+  enable_telemetry: true
+  expected_behavior: Local collector ingestion
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://localhost:4318
+  otlp_protocol: http/json
+  timeout: 30000
+- debugging_focus: Local protocol debugging
+  description: OTLP http/json to http://localhost:4318
+  enable_telemetry: true
+  expected_behavior: Local collector ingestion
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://localhost:4318
+  otlp_protocol: http/json
+  timeout: 30000
+- debugging_focus: Network connectivity validation
+  description: OTLP http/json to http://pi.lan:4317
+  enable_telemetry: true
+  expected_behavior: Remote collector transmission
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://pi.lan:4317
+  otlp_protocol: http/json
+  timeout: 30000
+- debugging_focus: Network connectivity validation
+  description: OTLP http/json to http://pi.lan:4317
+  enable_telemetry: true
+  expected_behavior: Remote collector transmission
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://pi.lan:4317
+  otlp_protocol: http/json
+  timeout: 30000
+- debugging_focus: Network connectivity validation
+  description: OTLP http/json to http://pi.lan:4318
+  enable_telemetry: true
+  expected_behavior: Remote collector transmission
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://pi.lan:4318
+  otlp_protocol: http/json
+  timeout: 30000
+- debugging_focus: Network connectivity validation
+  description: OTLP http/json to http://pi.lan:4318
+  enable_telemetry: true
+  expected_behavior: Remote collector transmission
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://pi.lan:4318
+  otlp_protocol: http/json
+  timeout: 30000
+- debugging_focus: Authentication and routing
+  description: OTLP http/json to https://api.honeycomb.io
+  enable_telemetry: true
+  expected_behavior: SaaS provider integration
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: https://api.honeycomb.io
+  otlp_protocol: http/json
+  timeout: 30000
+- debugging_focus: Authentication and routing
+  description: OTLP http/json to https://api.honeycomb.io
+  enable_telemetry: true
+  expected_behavior: SaaS provider integration
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: https://api.honeycomb.io
+  otlp_protocol: http/json
+  timeout: 30000
+- debugging_focus: Failure mode analysis
+  description: OTLP http/json to http://invalid-endpoint
+  enable_telemetry: true
+  expected_behavior: Graceful error handling
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://invalid-endpoint
+  otlp_protocol: http/json
+  timeout: 30000
+- debugging_focus: Failure mode analysis
+  description: OTLP http/json to http://invalid-endpoint
+  enable_telemetry: true
+  expected_behavior: Graceful error handling
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://invalid-endpoint
+  otlp_protocol: http/json
+  timeout: 30000
+- debugging_focus: Failure mode analysis
+  description: OTLP http/json to http://unreachable:4317
+  enable_telemetry: true
+  expected_behavior: Graceful error handling
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://unreachable:4317
+  otlp_protocol: http/json
+  timeout: 30000
+- debugging_focus: Failure mode analysis
+  description: OTLP http/json to http://unreachable:4317
+  enable_telemetry: true
+  expected_behavior: Graceful error handling
+  export_interval: 30000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://unreachable:4317
+  otlp_protocol: http/json
+  timeout: 30000
+- debugging_focus: Exposition format compliance
+  description: Prometheus exposition format test
+  enable_telemetry: true
+  expected_behavior: Metrics available at /metrics endpoint
+  export_interval: 30000
+  headers: null
+  metrics_exporter: prometheus
+  otlp_endpoint: null
+  otlp_protocol: null
+  timeout: 30000
+- debugging_focus: Output format validation
+  description: Basic console exporter test
+  enable_telemetry: true
+  expected_behavior: Local output generation
+  export_interval: 10000
+  headers: null
+  metrics_exporter: console
+  otlp_endpoint: null
+  otlp_protocol: null
+  timeout: 30000
+- debugging_focus: Output format validation
+  description: Basic logging exporter test
+  enable_telemetry: true
+  expected_behavior: Local output generation
+  export_interval: 10000
+  headers: null
+  metrics_exporter: logging
+  otlp_endpoint: null
+  otlp_protocol: null
+  timeout: 30000
+- debugging_focus: Output format validation
+  description: Basic none exporter test
+  enable_telemetry: true
+  expected_behavior: Local output generation
+  export_interval: 10000
+  headers: null
+  metrics_exporter: none
+  otlp_endpoint: null
+  otlp_protocol: null
+  timeout: 30000
+- debugging_focus: Disable mechanism validation
+  description: Telemetry disabled test
+  enable_telemetry: false
+  expected_behavior: No metrics generation
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://localhost:4317
+  otlp_protocol: grpc
+  timeout: 30000
+- debugging_focus: Invalid configuration handling
+  description: Invalid exporter test
+  enable_telemetry: true
+  expected_behavior: Configuration error
+  export_interval: 10000
+  headers: null
+  metrics_exporter: invalid_exporter
+  otlp_endpoint: null
+  otlp_protocol: null
+  timeout: 30000
+- debugging_focus: Protocol validation
+  description: Invalid protocol test
+  enable_telemetry: true
+  expected_behavior: Protocol error
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://localhost:4317
+  otlp_protocol: invalid_protocol
+  timeout: 30000
+- debugging_focus: Timeout behavior analysis
+  description: Timeout test
+  enable_telemetry: true
+  expected_behavior: Timeout error handling
+  export_interval: 10000
+  headers: null
+  metrics_exporter: otlp
+  otlp_endpoint: http://localhost:4317
+  otlp_protocol: grpc
+  timeout: 100
+- debugging_focus: Authentication debugging
+  description: Authentication failure test
+  enable_telemetry: true
+  expected_behavior: Auth error handling
+  export_interval: 10000
+  headers: 'Authorization: Bearer invalid-token'
+  metrics_exporter: otlp
+  otlp_endpoint: http://localhost:4317
+  otlp_protocol: grpc
+  timeout: 30000
+- debugging_focus: Performance impact analysis
+  description: High frequency test (100ms)
+  enable_telemetry: true
+  expected_behavior: High throughput metrics
+  export_interval: 100
+  headers: null
+  metrics_exporter: console
+  otlp_endpoint: null
+  otlp_protocol: null
+  timeout: 30000
+- debugging_focus: Performance impact analysis
+  description: High frequency test (500ms)
+  enable_telemetry: true
+  expected_behavior: High throughput metrics
+  export_interval: 500
+  headers: null
+  metrics_exporter: console
+  otlp_endpoint: null
+  otlp_protocol: null
+  timeout: 30000
+- debugging_focus: Performance impact analysis
+  description: High frequency test (1000ms)
+  enable_telemetry: true
+  expected_behavior: High throughput metrics
+  export_interval: 1000
+  headers: null
+  metrics_exporter: console
+  otlp_endpoint: null
+  otlp_protocol: null
+  timeout: 30000

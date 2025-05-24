@@ -1,4 +1,4 @@
-.PHONY: tangle install clean analyze lint
+.PHONY: tangle install clean analyze lint simulate simulate-guile simulate-dev test-simulator
 
 # Tangle all org files to extract source code
 tangle:
@@ -10,9 +10,9 @@ install:
 
 # Run all analysis scripts
 analyze:
-	python3 src/project_metrics.py
-	python3 src/cost_analyzer.py
-	python3 src/session_analyzer.py
+	uv run python src/project_metrics.py
+	uv run python src/cost_analyzer.py
+	uv run python src/session_analyzer.py
 
 # Clean generated files
 clean:
@@ -40,6 +40,48 @@ dashboards-dev:
 dashboards-prod:
 	uv run python scripts/generate_dashboards.py --environment production
 
+# Simulate Claude Code metrics using Brownian motion
+simulate:
+	@echo "Starting Claude Code metrics simulator..."
+	@echo "Prometheus endpoint: http://localhost:9090/metrics"
+	@echo "Health check: http://localhost:9090/health"
+	@echo "Press Ctrl+C to stop"
+	uv run python scripts/claude-metrics-simulator.py --scenario normal
+
+# Simulate with specific scenario
+simulate-scenario:
+	@echo "Starting simulator with scenario: $(SCENARIO)"
+	uv run python scripts/claude-metrics-simulator.py --scenario $(SCENARIO)
+
+# Simulate using Guile Scheme (for advanced users)
+simulate-guile:
+	@echo "Starting Guile-based simulator..."
+	@if command -v guile-3.0 >/dev/null 2>&1; then \
+		guile-3.0 scripts/claude-metrics-simulator.scm; \
+	else \
+		echo "Error: guile-3.0 not found. Install with: sudo apt-get install guile-3.0"; \
+		echo "Falling back to Python simulator..."; \
+		$(MAKE) simulate; \
+	fi
+
+# Development mode with custom port and live reloading
+simulate-dev:
+	@echo "Starting simulator in development mode..."
+	uv run python scripts/claude-metrics-simulator.py --dev --port 9091 --scenario high_load
+
+# Test simulator functionality
+test-simulator:
+	@echo "Testing simulator functionality..."
+	uv run python scripts/claude-metrics-simulator.py --duration 30 --scenario normal --port 9092 &
+	@sleep 5
+	@echo "Testing metrics endpoint..."
+	@curl -s http://localhost:9092/metrics | head -10 || echo "Metrics endpoint test failed"
+	@echo "Testing health endpoint..."
+	@curl -s http://localhost:9092/health | uv run python -m json.tool || echo "Health endpoint test failed"
+	@echo "Waiting for simulator to complete..."
+	@wait
+	@echo "Simulator test completed"
+
 # Help
 help:
 	@echo "Available targets:"
@@ -49,6 +91,11 @@ help:
 	@echo "  dashboards  - Generate Grafana dashboards from templates"
 	@echo "  dashboards-dev  - Generate dashboards for development environment"
 	@echo "  dashboards-prod - Generate dashboards for production environment"
+	@echo "  simulate    - Start Claude Code metrics simulator (Brownian motion)"
+	@echo "  simulate-scenario SCENARIO=name - Start simulator with specific scenario"
+	@echo "  simulate-guile - Start Guile-based simulator (fallback to Python)"
+	@echo "  simulate-dev - Start simulator in development mode"
+	@echo "  test-simulator - Test simulator functionality"
 	@echo "  clean       - Remove generated files"
 	@echo "  lint        - Check code style"
 	@echo "  format      - Format code"

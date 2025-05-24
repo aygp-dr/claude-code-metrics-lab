@@ -1,0 +1,657 @@
+# Telemetry Contracts, APIs, and Specifications
+
+This document defines the contracts, APIs, and specifications for each component in the Claude Code telemetry system. These specifications enable systematic debugging, validation, and integration testing.
+
+## Table of Contents
+
+1. [Metric Schema Contracts](#metric-schema-contracts)
+2. [Protocol Specifications](#protocol-specifications) 
+3. [Storage Interface Contracts](#storage-interface-contracts)
+4. [Visualization Contracts](#visualization-contracts)
+5. [Validation Specifications](#validation-specifications)
+6. [Error Handling Contracts](#error-handling-contracts)
+
+---
+
+## Metric Schema Contracts
+
+### Base Metric Structure
+
+All Claude Code metrics MUST conform to this base JSON schema:
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["metric_name", "value", "timestamp"],
+  "properties": {
+    "metric_name": {
+      "type": "string",
+      "pattern": "^otel_claude_code_[a-z_]+$",
+      "description": "Metric name with otel_claude_code prefix"
+    },
+    "value": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Numeric metric value"
+    },
+    "labels": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Key-value pairs for metric dimensions"
+    },
+    "timestamp": {
+      "type": "number",
+      "description": "Unix timestamp in seconds"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional context not used for aggregation"
+    }
+  }
+}
+```
+
+### Specific Metric Contracts
+
+#### Token Usage Metric
+
+```yaml
+metric_name: "otel_claude_code_token_usage_tokens_total"
+metric_type: "counter"
+required_labels: ["model", "token_type"]
+optional_labels: ["session_id", "project", "user_id"]
+value_constraints:
+  minimum: 0
+  maximum: 1000000
+  type: "integer"
+validation_rules:
+  - model MUST be in ["claude-3-sonnet", "claude-3-haiku", "claude-3-opus"]
+  - token_type MUST be in ["input", "output", "total"]
+  - session_id SHOULD follow pattern "session-[0-9]+"
+prometheus_help: "Total number of tokens used in Claude Code sessions"
+prometheus_type: "counter"
+```
+
+#### Session Duration Metric
+
+```yaml
+metric_name: "otel_claude_code_session_duration_seconds"
+metric_type: "histogram"
+required_labels: ["session_id"]
+optional_labels: ["status", "project", "user_id"]
+value_constraints:
+  minimum: 0
+  maximum: 86400  # 24 hours
+  type: "float"
+validation_rules:
+  - status MUST be in ["active", "completed", "failed", "timeout"]
+  - session_id MUST be unique per session
+prometheus_help: "Duration of Claude Code sessions in seconds"
+prometheus_type: "histogram"
+buckets: [1, 5, 10, 30, 60, 300, 600, 1800, 3600]
+```
+
+#### Cost Tracking Metric
+
+```yaml
+metric_name: "otel_claude_code_cost_usd"
+metric_type: "gauge"
+required_labels: ["model"]
+optional_labels: ["session_id", "project", "billing_period"]
+value_constraints:
+  minimum: 0
+  maximum: 10000
+  type: "float"
+  precision: 4  # 4 decimal places
+validation_rules:
+  - model MUST match token usage model labels
+  - billing_period SHOULD be ISO 8601 format
+prometheus_help: "Estimated cost in USD for Claude Code usage"
+prometheus_type: "gauge"
+```
+
+#### Tool Usage Metric
+
+```yaml
+metric_name: "otel_claude_code_tool_usage_total"
+metric_type: "counter"
+required_labels: ["tool_name"]
+optional_labels: ["session_id", "project", "status"]
+value_constraints:
+  minimum: 0
+  maximum: 100000
+  type: "integer"
+validation_rules:
+  - tool_name MUST be in ["Read", "Write", "Edit", "Bash", "Glob", "Grep", "WebFetch", "Task", "Batch"]
+  - status MUST be in ["success", "error", "timeout"]
+prometheus_help: "Number of tool invocations in Claude Code sessions"
+prometheus_type: "counter"
+```
+
+#### Error Tracking Metric
+
+```yaml
+metric_name: "otel_claude_code_error_total"
+metric_type: "counter"
+required_labels: ["error_type"]
+optional_labels: ["session_id", "tool_name", "error_code"]
+value_constraints:
+  minimum: 0
+  maximum: 10000
+  type: "integer"
+validation_rules:
+  - error_type MUST be in ["timeout", "network", "auth", "validation", "internal"]
+  - error_code SHOULD be HTTP status code or application error code
+prometheus_help: "Number of errors encountered in Claude Code sessions"
+prometheus_type: "counter"
+```
+
+---
+
+## Protocol Specifications
+
+### OTLP Protocol Contract
+
+#### GRPC Interface
+
+```protobuf
+service MetricsService {
+  rpc Export(ExportMetricsServiceRequest) returns (ExportMetricsServiceResponse);
+}
+
+message ExportMetricsServiceRequest {
+  repeated ResourceMetrics resource_metrics = 1;
+}
+
+message ResourceMetrics {
+  Resource resource = 1;
+  repeated ScopeMetrics scope_metrics = 2;
+  string schema_url = 3;
+}
+```
+
+**Endpoint Configuration:**
+```yaml
+protocol: "grpc"
+endpoint: "http://collector:4317"
+timeout: 30000  # milliseconds
+compression: "gzip"
+headers:
+  - "x-honeycomb-team: YOUR_API_KEY"  # for SaaS providers
+```
+
+#### HTTP/Protobuf Interface
+
+```yaml
+method: "POST"
+endpoint: "http://collector:4318/v1/metrics"
+content_type: "application/x-protobuf"
+timeout: 30000
+encoding: "protobuf"
+compression: "gzip"
+```
+
+#### HTTP/JSON Interface
+
+```yaml
+method: "POST" 
+endpoint: "http://collector:4318/v1/metrics"
+content_type: "application/json"
+timeout: 30000
+encoding: "json"
+max_payload_size: "4MB"
+```
+
+**Example JSON Payload:**
+```json
+{
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [
+          {"key": "service.name", "value": {"stringValue": "claude-code"}},
+          {"key": "service.version", "value": {"stringValue": "1.0.0"}}
+        ]
+      },
+      "scopeMetrics": [
+        {
+          "scope": {"name": "claude-code-metrics"},
+          "metrics": [
+            {
+              "name": "otel_claude_code_token_usage_tokens_total",
+              "description": "Total tokens used",
+              "unit": "1",
+              "sum": {
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {"key": "model", "value": {"stringValue": "claude-3-sonnet"}},
+                      {"key": "token_type", "value": {"stringValue": "input"}}
+                    ],
+                    "timeUnixNano": "1640995200000000000",
+                    "asInt": "1500"
+                  }
+                ],
+                "aggregationTemporality": 2,
+                "isMonotonic": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Prometheus Exposition Format
+
+```prometheus
+# HELP otel_claude_code_token_usage_tokens_total Total tokens used in Claude Code sessions
+# TYPE otel_claude_code_token_usage_tokens_total counter
+otel_claude_code_token_usage_tokens_total{model="claude-3-sonnet",token_type="input",session_id="session-001"} 1500 1640995200000
+
+# HELP otel_claude_code_session_duration_seconds Duration of Claude Code sessions
+# TYPE otel_claude_code_session_duration_seconds histogram
+otel_claude_code_session_duration_seconds_bucket{session_id="session-001",le="1"} 0
+otel_claude_code_session_duration_seconds_bucket{session_id="session-001",le="5"} 0
+otel_claude_code_session_duration_seconds_bucket{session_id="session-001",le="10"} 1
+otel_claude_code_session_duration_seconds_bucket{session_id="session-001",le="+Inf"} 1
+otel_claude_code_session_duration_seconds_sum{session_id="session-001"} 8.5
+otel_claude_code_session_duration_seconds_count{session_id="session-001"} 1
+```
+
+---
+
+## Storage Interface Contracts
+
+### Prometheus Query API
+
+#### Range Query Interface
+
+```http
+GET /api/v1/query_range
+```
+
+**Parameters:**
+```yaml
+query: "otel_claude_code_token_usage_tokens_total"
+start: "2023-01-01T00:00:00Z"  # RFC3339 format
+end: "2023-01-01T23:59:59Z"
+step: "300s"  # 5 minute resolution
+timeout: "30s"
+```
+
+**Response Contract:**
+```json
+{
+  "status": "success",
+  "data": {
+    "resultType": "matrix",
+    "result": [
+      {
+        "metric": {
+          "__name__": "otel_claude_code_token_usage_tokens_total",
+          "model": "claude-3-sonnet",
+          "token_type": "input"
+        },
+        "values": [
+          [1640995200, "1500"],
+          [1640995500, "3200"]
+        ]
+      }
+    ]
+  }
+}
+```
+
+#### Instant Query Interface
+
+```http
+GET /api/v1/query
+```
+
+**Parameters:**
+```yaml
+query: "rate(otel_claude_code_token_usage_tokens_total[5m])"
+time: "2023-01-01T12:00:00Z"
+timeout: "30s"
+```
+
+### PromQL Query Contracts
+
+#### Standard Queries
+
+```promql
+# Token usage rate per minute
+rate(otel_claude_code_token_usage_tokens_total[1m])
+
+# Session duration 95th percentile
+histogram_quantile(0.95, otel_claude_code_session_duration_seconds_bucket)
+
+# Cost per model
+sum by (model) (otel_claude_code_cost_usd)
+
+# Error rate percentage
+rate(otel_claude_code_error_total[5m]) / rate(otel_claude_code_tool_usage_total[5m]) * 100
+```
+
+---
+
+## Visualization Contracts
+
+### Grafana Dashboard JSON Model
+
+```json
+{
+  "dashboard": {
+    "id": null,
+    "title": "Claude Code Metrics",
+    "tags": ["claude-code", "telemetry"],
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Token Usage Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(otel_claude_code_token_usage_tokens_total[5m])",
+            "legendFormat": "{{model}} - {{token_type}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Tokens/Second",
+            "min": 0
+          }
+        ],
+        "thresholds": [
+          {
+            "value": 100,
+            "colorMode": "critical",
+            "op": "gt"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Panel Specifications
+
+#### Metric Panel Contract
+
+```yaml
+panel_type: "graph"
+required_fields:
+  - title
+  - targets
+  - yAxes
+optional_fields:
+  - thresholds
+  - alert
+  - legend
+target_specification:
+  expr: "PromQL query string"
+  legendFormat: "Template with {{label}} substitutions"
+  refId: "Single letter identifier"
+```
+
+#### Alert Rule Contract
+
+```yaml
+alert:
+  name: "High Token Usage"
+  frequency: "10s"
+  conditions:
+    - query: "A"
+      reducer: "avg"
+      type: "query"
+      params: ["5m", "now"]
+    - evaluator: "gt"
+      params: [1000]
+      type: "threshold"
+  executionErrorState: "alerting"
+  noDataState: "no_data"
+  notifications:
+    - uid: "slack-notifications"
+```
+
+---
+
+## Validation Specifications
+
+### Input Validation Contract
+
+```yaml
+validation_levels:
+  - schema: "JSON Schema validation"
+  - semantic: "Business rule validation"
+  - performance: "Resource constraint validation"
+
+schema_validation:
+  engine: "jsonschema"
+  strict_mode: true
+  additional_properties: false
+
+semantic_validation:
+  label_consistency: "Labels must be consistent across related metrics"
+  timestamp_ordering: "Timestamps must be monotonically increasing for counters"
+  value_ranges: "Values must be within configured ranges"
+
+performance_validation:
+  max_metrics_per_batch: 1000
+  max_labels_per_metric: 20
+  max_label_value_length: 255
+```
+
+### Protocol Validation Contract
+
+```yaml
+otlp_grpc_validation:
+  - message_format: "Valid protobuf encoding"
+  - compression: "gzip, deflate, or none"
+  - headers: "Valid HTTP/2 headers"
+  - timeout_handling: "Graceful timeout behavior"
+
+otlp_http_validation:
+  - content_type: "application/x-protobuf or application/json"
+  - http_status: "200 for success, 4xx/5xx for errors"
+  - error_format: "Standard OTLP error response"
+
+prometheus_validation:
+  - exposition_format: "Compliance with Prometheus text format"
+  - metric_names: "Valid Prometheus metric naming"
+  - label_names: "Valid Prometheus label naming"
+  - help_text: "Required HELP and TYPE comments"
+```
+
+---
+
+## Error Handling Contracts
+
+### Error Classification
+
+```yaml
+error_categories:
+  validation_errors:
+    - invalid_schema
+    - missing_required_fields
+    - invalid_label_values
+    - value_out_of_range
+  
+  network_errors:
+    - connection_timeout
+    - connection_refused
+    - dns_resolution_failure
+    - ssl_certificate_error
+  
+  protocol_errors:
+    - invalid_otlp_message
+    - unsupported_protocol_version
+    - compression_error
+    - encoding_error
+  
+  authentication_errors:
+    - invalid_api_key
+    - expired_token
+    - insufficient_permissions
+    - rate_limit_exceeded
+```
+
+### Error Response Format
+
+#### OTLP Error Response
+
+```json
+{
+  "code": 3,  // INVALID_ARGUMENT
+  "message": "Invalid metric name format",
+  "details": [
+    {
+      "@type": "type.googleapis.com/google.rpc.BadRequest",
+      "fieldViolations": [
+        {
+          "field": "metric_name",
+          "description": "Must start with 'otel_claude_code_'"
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### HTTP Error Response
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Metric validation failed",
+    "details": {
+      "metric_name": "otel_claude_code_token_usage_tokens_total",
+      "validation_failures": [
+        "Missing required label: model",
+        "Value 1500000 exceeds maximum of 1000000"
+      ]
+    },
+    "timestamp": "2023-01-01T12:00:00Z"
+  }
+}
+```
+
+### Retry and Fallback Contract
+
+```yaml
+retry_policy:
+  max_attempts: 3
+  initial_backoff: "1s"
+  max_backoff: "30s"
+  backoff_multiplier: 2.0
+  retryable_errors:
+    - connection_timeout
+    - connection_refused
+    - rate_limit_exceeded
+    - server_error_5xx
+
+fallback_policy:
+  primary_exporter: "otlp"
+  fallback_exporter: "logging"
+  fallback_triggers:
+    - network_unreachable
+    - authentication_failure
+    - protocol_error
+  recovery_check_interval: "60s"
+```
+
+---
+
+## Testing Contracts
+
+### Test Specification Format
+
+```yaml
+test_case:
+  name: "Token usage metric validation"
+  description: "Verify token usage metric accepts valid input and rejects invalid input"
+  
+  setup:
+    - configure_logging_proxy
+    - enable_validation_rules
+  
+  test_data:
+    valid_inputs:
+      - metric_name: "otel_claude_code_token_usage_tokens_total"
+        value: 1500
+        labels: {"model": "claude-3-sonnet", "token_type": "input"}
+    
+    invalid_inputs:
+      - metric_name: "invalid_metric_name"
+        value: 1500
+        expected_error: "Invalid metric name format"
+      - metric_name: "otel_claude_code_token_usage_tokens_total"
+        value: -100
+        expected_error: "Value must be non-negative"
+  
+  assertions:
+    - valid_inputs_accepted: true
+    - invalid_inputs_rejected: true
+    - error_messages_descriptive: true
+    - performance_within_limits: true
+```
+
+### Integration Test Contract
+
+```yaml
+integration_test:
+  name: "End-to-end telemetry pipeline"
+  components:
+    - claude_code_instrumentation
+    - logging_proxy
+    - otlp_collector
+    - prometheus_storage
+    - grafana_visualization
+  
+  test_flow:
+    1. generate_metric_events
+    2. validate_proxy_collection
+    3. verify_otlp_transmission
+    4. confirm_prometheus_storage
+    5. test_grafana_queries
+  
+  success_criteria:
+    - metric_data_integrity: "Values match at each stage"
+    - label_preservation: "Labels maintained through pipeline"
+    - timestamp_accuracy: "Timestamps within 1s tolerance"
+    - query_performance: "Queries complete within 5s"
+```
+
+---
+
+## Implementation Guidelines
+
+### Contract Validation Implementation
+
+1. **Schema Validation**: Use JSON Schema libraries to validate metric structure
+2. **Protocol Validation**: Implement protocol-specific validators for OTLP and Prometheus
+3. **Semantic Validation**: Create business rule validators for label consistency and value ranges
+4. **Integration Testing**: Develop end-to-end tests that validate contracts across components
+
+### Debugging with Contracts
+
+1. **Contract Violations**: Log detailed information when contracts are violated
+2. **Validation Tracing**: Track validation results through the pipeline
+3. **Error Correlation**: Link errors back to specific contract violations
+4. **Performance Monitoring**: Measure contract validation overhead
+
+This specification provides a comprehensive foundation for implementing, debugging, and maintaining the Claude Code telemetry system with clear contracts at every interface.
