@@ -47,6 +47,7 @@ A dedicated lab for tracking, analyzing, and visualizing Claude Code usage metri
 
 * Usage Commands
 
+** Basic Operations
 #+begin_src bash
 # Extract source from org files
 make tangle
@@ -54,10 +55,46 @@ make tangle
 # Install dependencies
 make install
 
-# Run analysis
+# Clean generated files
+make clean
+#+end_src
+
+** Code Quality
+#+begin_src bash
+# Check code style
+make lint
+
+# Format code
+make format
+#+end_src
+
+** Analysis and Dashboards
+#+begin_src bash
+# Run all analysis scripts
 make analyze
 
-# Code quality
-make lint
-make format
+# Generate Grafana dashboards
+make dashboards
+make dashboards-dev
+make dashboards-prod
+#+end_src
+
+** Metrics Simulation
+#+begin_src bash
+# Start metrics simulator
+make simulate
+
+# Simulator with scenarios
+make simulate-scenario SCENARIO=normal
+make simulate-dev
+make simulate-guile
+
+# Test simulator
+make test-simulator
+#+end_src
+
+** Help
+#+begin_src bash
+# Show all available commands
+make help
 #+end_src

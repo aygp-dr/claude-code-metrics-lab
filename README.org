@@ -82,22 +82,36 @@ graph TB
 
 * Usage
 
-** Running Analysis
-#+begin_src bash
-# Project metrics
-python3 src/project_metrics.py
-
-# Cost analysis  
-python3 src/cost_analyzer.py
-
-# Session patterns
-python3 src/session_analyzer.py
-#+end_src
-
-** Tangle Configuration
+** Basic Operations
 #+begin_src bash
 # Extract all source files from SETUP.org
 make tangle
+
+# Install Python dependencies
+make install
+
+# Clean generated files
+make clean
+#+end_src
+
+** Code Quality
+#+begin_src bash
+# Check code style
+make lint
+
+# Format code
+make format
+#+end_src
+
+** Running Analysis
+#+begin_src bash
+# Run all analysis scripts
+make analyze
+
+# Or run individually:
+python3 src/project_metrics.py
+python3 src/cost_analyzer.py
+python3 src/session_analyzer.py
 #+end_src
 
 ** Dashboard Generation
@@ -111,6 +125,30 @@ make dashboards-prod   # Production settings
 
 # Manual generation with options
 uv run python scripts/generate_dashboards.py --environment staging
+#+end_src
+
+** Metrics Simulation
+#+begin_src bash
+# Start Claude Code metrics simulator
+make simulate
+
+# Simulate with specific scenario
+make simulate-scenario SCENARIO=high_load
+
+# Development mode simulator
+make simulate-dev
+
+# Guile-based simulator (fallback to Python)
+make simulate-guile
+
+# Test simulator functionality
+make test-simulator
+#+end_src
+
+** Help
+#+begin_src bash
+# Show all available commands
+make help
 #+end_src
 
 * Requirements
