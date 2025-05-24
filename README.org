@@ -17,6 +17,20 @@ This lab provides tools and dashboards for tracking Claude Code usage across pro
 2. Import dashboards from =dashboards/=
 3. Run analysis scripts from =src/=
 
+* Real-World Metrics Example
+
+The following dashboard screenshot shows actual Claude Code telemetry data captured during a 24-hour experiment:
+
+[[file:docs/grafana-dashboard-example.png]]
+
+*Key Observations:*
+- *Total Cost*: $42.23 across 14 million tokens
+- *Model Distribution*: Opus 4 dominated usage (11M tokens, $40.64)
+- *Cost Variance*: 172x difference between Haiku ($0.24) and Opus 4 ($40.64)
+- *Single Session*: All activity from one intensive session
+
+This demonstrates the importance of telemetry for understanding AI operational costs. These metrics were collected via OpenTelemetry and visualized in Grafana.
+
 * Dashboard Preview
 
 #+begin_src mermaid :file docs/dashboard.png :tangle docs/dashboard.mmd
