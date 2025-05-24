@@ -7,4 +7,10 @@ exports/*.csv
 venv/
 .direnv/
 
+# Emacs temporary files
+*~
+.#*
+\#*\#
+
+# Claude Code settings
 **/.claude/settings.local.json
