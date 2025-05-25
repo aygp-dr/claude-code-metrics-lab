@@ -2,20 +2,23 @@
 #+DESCRIPTION: OpenTelemetry-based metrics tracking and analysis for Claude Code usage
 
 * Overview
-This lab provides tools and dashboards for tracking Claude Code usage across projects.
+
+A pedagogical lab for learning telemetry implementation through practical Claude Code metrics tracking. This project emphasizes *understanding* over quick setup, providing workshops, exercises, and real-world examples.
 
 * Features
-- Real-time metrics collection via OTEL
-- Custom Grafana dashboards
-- Cost analysis and projections
-- Usage pattern analysis
-- Per-project tracking
-- Model comparison metrics
+- Real-time metrics collection via OpenTelemetry
+- Custom Grafana dashboards with cost tracking
+- Pedagogical debugging tools (OTLP interceptor, debug sink)
+- Comprehensive test matrix for all configurations
+- Cost analysis and model comparison
+- Workshop materials for teaching telemetry concepts
 
 * Quick Start
-1. Ensure OTEL infrastructure is running (see pi-setup)
-2. Import dashboards from =dashboards/=
-3. Run analysis scripts from =src/=
+
+1. Copy =.env.sample= to =.env= and configure your environment
+2. Start OTLP infrastructure (Prometheus, Grafana, OTLP Collector)
+3. Use =make help= to see available commands
+4. Try =make otlp-debug-sink= to capture raw telemetry data
 
 * Real-World Metrics Example
 
@@ -31,7 +34,75 @@ The following dashboard screenshot shows actual Claude Code telemetry data captu
 
 This demonstrates the importance of telemetry for understanding AI operational costs. These metrics were collected via OpenTelemetry and visualized in Grafana.
 
-* Dashboard Preview
+* Learning Resources
+
+** 📚 Tutorials and Guides
+- [[file:telemetry-approach-summary.org][Pedagogical Approach to Telemetry]] - Start here for the educational philosophy
+- [[file:telemetry-experiment-phase1.org][Phase 1 Experiment Results]] - Real-world cost analysis and lessons learned
+- [[file:technical-guide.org][Comprehensive Technical Guide]] - Deep dive into all components
+- [[file:docs/telemetry-contracts.org][Telemetry Contracts & APIs]] - Detailed specifications for debugging
+
+** 🛠️ Workshops and Exercises
+- [[file:http-interceptor-workshop.org][HTTP Interceptor Workshop]] - Build telemetry interceptors from scratch
+- [[file:netcat-otlp-exercises.org][Netcat OTLP Exercises]] - Learn OTLP protocol with simple tools
+- [[file:generator.org][Dashboard Generator Tutorial]] - Create custom Grafana dashboards
+
+** 📊 Configuration and Examples
+- [[file:dashboard.org][Dashboard Configuration]] - Pre-built dashboard examples
+- [[file:.env.sample][Environment Configuration]] - Complete configuration reference
+- [[file:test_matrix.py][Test Matrix]] - 54 test scenarios for telemetry configurations
+
+* Available Tools
+
+** Telemetry Debugging
+#+begin_src bash
+# Capture raw OTLP requests without forwarding
+make otlp-debug-sink
+
+# Intercept and forward OTLP requests
+make otlp-interceptor
+
+# Verbose interceptor with real-time analysis
+make otlp-interceptor-verbose
+#+end_src
+
+** Metrics Simulation
+#+begin_src bash
+# Start metrics simulator (Brownian motion model)
+make simulate
+
+# Test with specific scenarios
+make simulate-scenario SCENARIO=high_load
+
+# Run simulator tests
+make test-simulator
+#+end_src
+
+** Analysis and Dashboards
+#+begin_src bash
+# Run cost and usage analysis
+make analyze
+
+# Generate Grafana dashboards
+make dashboards
+make dashboards-dev
+make dashboards-prod
+#+end_src
+
+** Development Tools
+#+begin_src bash
+# Code quality checks
+make lint
+make format
+
+# Clean generated files
+make clean
+
+# Show all commands
+make help
+#+end_src
+
+* Dashboard Architecture
 
 #+begin_src mermaid :file docs/dashboard.png :tangle docs/dashboard.mmd
 graph TB
@@ -68,107 +139,56 @@ graph TB
 #+RESULTS:
 [[file:docs/dashboard.png]]
 
+* Project Structure
 
 #+begin_example
-┌─ Claude Code Metrics ─────────────────────────────────────────────┐
-│                                                                   │
-│ 📊 Token Usage (24h)        💰 Cost Tracking        🕐 Sessions  │
-│ ┌─────────────────┐         ┌─────────────────┐     ┌─────────┐  │
-│ │ Input:   45.2K  │         │ Today:   $2.34  │     │ Active: │  │
-│ │ Output:  23.1K  │         │ Week:   $14.67  │     │   🟢 3  │  │
-│ │ Cache:    8.9K  │         │ Month:  $51.23  │     │ Total:  │  │
-│ │ Ratio:    0.51  │         │ Trend:     ↗    │     │   📈 87 │  │
-│ └─────────────────┘         └─────────────────┘     └─────────┘  │
-│                                                                   │
-│ 🎯 Top Projects              📈 Usage Patterns      🤖 Models    │
-│ ┌─────────────────┐         ┌─────────────────┐     ┌─────────┐  │
-│ │ claude-metrics  │         │     Hour Usage  │     │ Haiku   │  │
-│ │ ████████ 34.2%  │         │ 09: ███████     │     │ ██ 45%  │  │
-│ │ web-scraper     │         │ 14: █████       │     │ Sonnet  │  │
-│ │ █████    21.1%  │         │ 16: ████████    │     │ ███ 55% │  │
-│ │ data-analysis   │         │ 20: ████        │     │ Opus    │  │
-│ │ ███      18.3%  │         │ Peak: 4-6 PM    │     │ ▌ 2%    │  │
-│ └─────────────────┘         └─────────────────┘     └─────────┘  │
-│                                                                   │
-│ 🔍 Efficiency Score: 87/100  ⚡ Avg Response: 1.2s  📊 Since: 30d│
-└───────────────────────────────────────────────────────────────────┘
+claude-code-metrics-lab/
+├── .env.sample              # Environment configuration template
+├── Makefile                 # All available commands (run 'make help')
+├── README.org               # This file
+├── CLAUDE.org              # Claude-specific configuration
+│
+├── docs/                    # Documentation
+│   ├── grafana-dashboard-example.png
+│   ├── telemetry-contracts.org
+│   └── github-issue-*.md    # Issue templates
+│
+├── src/                     # Analysis scripts
+│   ├── project_metrics.py
+│   ├── cost_analyzer.py
+│   └── session_analyzer.py
+│
+├── scripts/                 # Utility scripts
+│   ├── claude-metrics-simulator.py
+│   ├── generate_dashboards.py
+│   └── otlp-http-interceptor.sh
+│
+├── dashboards/              # Grafana dashboard JSON files
+├── exports/                 # Analysis output directory
+└── test_results/            # Test matrix results
 #+end_example
 
-* Usage
-
-** Basic Operations
-#+begin_src bash
-# Extract all source files from SETUP.org
-make tangle
-
-# Install Python dependencies
-make install
-
-# Clean generated files
-make clean
-#+end_src
-
-** Code Quality
-#+begin_src bash
-# Check code style
-make lint
-
-# Format code
-make format
-#+end_src
-
-** Running Analysis
-#+begin_src bash
-# Run all analysis scripts
-make analyze
-
-# Or run individually:
-python3 src/project_metrics.py
-python3 src/cost_analyzer.py
-python3 src/session_analyzer.py
-#+end_src
-
-** Dashboard Generation
-#+begin_src bash
-# Generate Grafana dashboards from templates
-make dashboards
-
-# Generate for specific environments
-make dashboards-dev    # Development settings
-make dashboards-prod   # Production settings
-
-# Manual generation with options
-uv run python scripts/generate_dashboards.py --environment staging
-#+end_src
-
-** Metrics Simulation
-#+begin_src bash
-# Start Claude Code metrics simulator
-make simulate
-
-# Simulate with specific scenario
-make simulate-scenario SCENARIO=high_load
-
-# Development mode simulator
-make simulate-dev
-
-# Guile-based simulator (fallback to Python)
-make simulate-guile
-
-# Test simulator functionality
-make test-simulator
-#+end_src
-
-** Help
-#+begin_src bash
-# Show all available commands
-make help
-#+end_src
-
 * Requirements
-- Python 3.8+
-- OpenTelemetry infrastructure
-- Prometheus and Grafana
-- Claude Code with telemetry enabled
 
-See =docs/setup.org= for detailed setup instructions.
+- Python 3.8+ with uv package manager
+- OpenTelemetry Collector (OTLP)
+- Prometheus for metrics storage
+- Grafana for visualization
+- Claude API access with telemetry enabled
+- netcat (nc) for debugging tools
+- Optional: socat for advanced HTTP interception
+
+* Contributing
+
+This lab is designed for experimentation and learning. Contributions welcome:
+1. Document new telemetry patterns
+2. Add workshop exercises
+3. Share dashboard improvements
+4. Report cost anomalies
+
+* References
+
+- [[https://opentelemetry.io/docs/][OpenTelemetry Documentation]]
+- [[https://prometheus.io/docs/][Prometheus Documentation]]
+- [[https://grafana.com/docs/][Grafana Documentation]]
+- GitHub Issues: [[file:docs/github-issue-telemetry-approach.md][Telemetry Approach]], [[file:docs/github-issue-prometheus-simulator.md][Prometheus Simulator]]
