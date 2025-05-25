@@ -1,0 +1,226 @@
+# Docker Compose Development Environment
+# Implementation of RFC: Simulator and Development Instance
+
+version: '3.8'
+
+services:
+  # Isolated Prometheus for testing
+  prometheus-dev:
+    image: prom/prometheus:v2.47.0
+    container_name: claude-metrics-prometheus-dev
+    ports:
+      - "9091:9090"  # Different port from production
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+      - '--storage.tsdb.retention.size=10GB'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'  # Allow config reloads
+      - '--web.enable-admin-api'   # Enable admin API for testing
+    volumes:
+      - ./config/prometheus-dev.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/prometheus-rules-dev.yml:/etc/prometheus/rules.yml:ro
+      - prometheus-dev-data:/prometheus
+    networks:
+      - claude-metrics-dev
+    restart: unless-stopped
+    labels:
+      - "prometheus.environment=development"
+      - "prometheus.instance=dev"
+
+  # Isolated Grafana for dashboard development
+  grafana-dev:
+    image: grafana/grafana:10.1.0
+    container_name: claude-metrics-grafana-dev
+    ports:
+      - "3001:3000"  # Different port from production
+    environment:
+      - GF_DEFAULT_INSTANCE_NAME=claude-metrics-dev
+      - GF_USERS_DEFAULT_THEME=light  # Distinguish from prod
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/overview-dev.json
+      - GF_SECURITY_ADMIN_PASSWORD=admin123  # Dev password
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true       # Easy dev access
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+      - GF_FEATURE_TOGGLES_ENABLE=ngalert   # New alerting
+    volumes:
+      - ./config/grafana-provisioning-dev:/etc/grafana/provisioning:ro
+      - ./dashboards/generated:/var/lib/grafana/dashboards:ro
+      - grafana-dev-data:/var/lib/grafana
+    networks:
+      - claude-metrics-dev
+    depends_on:
+      - prometheus-dev
+    restart: unless-stopped
+    labels:
+      - "grafana.environment=development"
+      - "grafana.instance=dev"
+
+  # Enhanced metrics simulator
+  simulator:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.simulator
+    container_name: claude-metrics-simulator
+    ports:
+      - "8000:8000"   # HTTP API
+      - "8001:8001"   # Metrics endpoint
+    environment:
+      - SCENARIO=${SCENARIO:-baseline}
+      - USERS=${USERS:-100}
+      - DURATION=${DURATION:-3600}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PROMETHEUS_URL=http://prometheus-dev:9090
+      - CONFIG_FILE=/app/config/simulator-config.yml
+    volumes:
+      - ./config:/app/config:ro
+      - ./scenarios:/app/scenarios:ro
+      - ./exports:/app/exports
+      - ./logs:/app/logs
+    networks:
+      - claude-metrics-dev
+    depends_on:
+      - prometheus-dev
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "simulator.environment=development"
+      - "simulator.scenario=${SCENARIO:-baseline}"
+
+  # Alert Manager for testing alerts
+  alertmanager-dev:
+    image: prom/alertmanager:v0.26.0
+    container_name: claude-metrics-alertmanager-dev
+    ports:
+      - "9093:9093"
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+    volumes:
+      - ./config/alertmanager-dev.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-dev-data:/alertmanager
+    networks:
+      - claude-metrics-dev
+    restart: unless-stopped
+    labels:
+      - "alertmanager.environment=development"
+
+  # OTEL Collector for development
+  otel-collector-dev:
+    image: otel/opentelemetry-collector-contrib:0.86.0
+    container_name: claude-metrics-otel-dev
+    ports:
+      - "14317:4317"   # OTLP gRPC receiver
+      - "14318:4318"   # OTLP HTTP receiver
+      - "8888:8888"    # Prometheus metrics
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./config/otel-collector-dev.yaml:/etc/otel-collector-config.yaml:ro
+    networks:
+      - claude-metrics-dev
+    depends_on:
+      - prometheus-dev
+    restart: unless-stopped
+    labels:
+      - "otel.environment=development"
+
+  # Redis for caching and session storage (development)
+  redis-dev:
+    image: redis:7.2-alpine
+    container_name: claude-metrics-redis-dev
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-dev-data:/data
+    networks:
+      - claude-metrics-dev
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "redis.environment=development"
+
+  # Scenario runner for automated testing
+  scenario-runner:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.scenario-runner
+    container_name: claude-metrics-scenario-runner
+    environment:
+      - SIMULATOR_URL=http://simulator:8000
+      - PROMETHEUS_URL=http://prometheus-dev:9090
+      - GRAFANA_URL=http://grafana-dev:3000
+      - TEST_DURATION=${TEST_DURATION:-300}
+    volumes:
+      - ./scenarios:/app/scenarios:ro
+      - ./test_results:/app/results
+      - ./scripts:/app/scripts:ro
+    networks:
+      - claude-metrics-dev
+    depends_on:
+      - simulator
+      - prometheus-dev
+      - grafana-dev
+    profiles:
+      - testing
+    labels:
+      - "scenario-runner.environment=development"
+
+  # Load balancer for testing high availability
+  nginx-dev:
+    image: nginx:1.25-alpine
+    container_name: claude-metrics-nginx-dev
+    ports:
+      - "8080:80"
+    volumes:
+      - ./config/nginx-dev.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - claude-metrics-dev
+    depends_on:
+      - simulator
+    restart: unless-stopped
+    labels:
+      - "nginx.environment=development"
+
+# Named volumes for persistent data
+volumes:
+  prometheus-dev-data:
+    driver: local
+    labels:
+      - "prometheus.data=development"
+  grafana-dev-data:
+    driver: local
+    labels:
+      - "grafana.data=development"
+  alertmanager-dev-data:
+    driver: local
+    labels:
+      - "alertmanager.data=development"
+  redis-dev-data:
+    driver: local
+    labels:
+      - "redis.data=development"
+
+# Dedicated network for development
+networks:
+  claude-metrics-dev:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+    labels:
+      - "network.environment=development"
+      - "network.purpose=metrics-testing"

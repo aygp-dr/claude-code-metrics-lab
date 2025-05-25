@@ -4,6 +4,7 @@
 # Phony targets
 .PHONY: help install clean analyze lint format dashboards dashboards-dev dashboards-prod \
         simulate simulate-scenario simulate-guile simulate-dev test-simulator \
+        simulate-enhanced simulate-docker dev-env test-scenarios test-dashboard \
         otlp-debug-sink otlp-interceptor otlp-interceptor-verbose
 
 help: ## Show this help message
@@ -102,3 +103,78 @@ otlp-interceptor-verbose: ## OTLP interceptor with real-time analysis
 	@echo "Forwarding to: pi.lan:4318"
 	@echo "Logging to: otlp-interceptor-$$(date +%Y%m%d-%H%M%S).log"
 	@nc -l 14318 | tee "otlp-interceptor-$$(date +%Y%m%d-%H%M%S).log" | tee >(grep -E "(POST|service\.name|tokens)" >&2) | nc pi.lan 4318
+
+# Enhanced Simulator Commands (RFC Implementation)
+
+simulate-enhanced: ## Start enhanced metrics simulator with user populations
+	@echo "Starting enhanced Claude Code metrics simulator..."
+	@echo "Simulator API: http://localhost:8000"
+	@echo "Metrics endpoint: http://localhost:8001/metrics"
+	@echo "Health check: http://localhost:8000/health"
+	@echo "Press Ctrl+C to stop"
+	uv run python src/metrics_simulator.py --config config/simulator-config.yml --scenario baseline
+
+simulate-docker: ## Start simulator in Docker development environment
+	@echo "Starting Docker development environment..."
+	docker-compose -f docker-compose.dev.yml up --build
+
+dev-env: ## Start complete development environment (Prometheus, Grafana, Simulator)
+	@echo "Starting complete development environment..."
+	@echo "Prometheus: http://localhost:9091"
+	@echo "Grafana: http://localhost:3001 (admin/admin123)"
+	@echo "Simulator: http://localhost:8000"
+	@echo "AlertManager: http://localhost:9093"
+	docker-compose -f docker-compose.dev.yml up -d
+
+dev-env-down: ## Stop development environment
+	docker-compose -f docker-compose.dev.yml down
+
+dev-env-logs: ## Show development environment logs
+	docker-compose -f docker-compose.dev.yml logs -f
+
+test-scenarios: ## Run automated scenario testing
+	@echo "Running automated scenario tests..."
+	@mkdir -p test_results
+	uv run python scripts/scenario_runner.py --all --output test_results/scenario_results.json
+
+test-scenario: ## Run specific scenario test (use SCENARIO=name)
+	@echo "Running scenario: $(SCENARIO)"
+	@mkdir -p test_results
+	uv run python scripts/scenario_runner.py --scenario $(SCENARIO) --output test_results/$(SCENARIO)_results.json
+
+test-dashboard: ## Test dashboard performance
+	@echo "Testing dashboard performance..."
+	@mkdir -p test_results
+	uv run python scripts/test_dashboard.py --output test_results/dashboard_performance.html
+
+test-concurrent: ## Run multiple scenarios concurrently
+	@echo "Running concurrent scenario tests..."
+	@mkdir -p test_results
+	uv run python scripts/scenario_runner.py --concurrent baseline black_friday stress_test
+
+# Development Utilities
+
+validate-config: ## Validate simulator configuration
+	@echo "Validating simulator configuration..."
+	uv run python -c "import yaml; yaml.safe_load(open('config/simulator-config.yml'))" && echo "Configuration is valid"
+
+simulate-black-friday: ## Quick start for Black Friday scenario
+	uv run python src/metrics_simulator.py --config config/simulator-config.yml --scenario black_friday --duration 1800
+
+simulate-stress-test: ## Quick start for stress testing scenario
+	uv run python src/metrics_simulator.py --config config/simulator-config.yml --scenario stress_test --duration 900
+
+# Monitoring and Analysis
+
+monitor-cardinality: ## Monitor Prometheus cardinality in development
+	@echo "Monitoring cardinality (press Ctrl+C to stop)..."
+	@while true; do \
+		curl -s http://localhost:9091/api/v1/query?query=prometheus_tsdb_head_series | jq -r '.data.result[0].value[1] // "N/A"' | xargs -I {} echo "Series count: {}"; \
+		sleep 10; \
+	done
+
+export-test-data: ## Export test data for analysis
+	@echo "Exporting test data..."
+	@mkdir -p exports/test_data
+	@curl -s "http://localhost:9091/api/v1/export?match[]={__name__=~\"otel_claude_code.*\"}" > exports/test_data/metrics_export.txt
+	@echo "Test data exported to exports/test_data/"

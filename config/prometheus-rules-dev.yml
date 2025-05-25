@@ -1,0 +1,166 @@
+# Prometheus Alerting Rules for Development Environment
+# Optimized for testing with lower thresholds and faster evaluation
+
+groups:
+  - name: claude-metrics-development
+    interval: 10s  # Fast evaluation for development
+    rules:
+      # High error rate alert
+      - alert: HighErrorRate
+        expr: |
+          (
+            rate(otel_claude_code_error_total[1m]) /
+            rate(otel_claude_code_session_count_total[1m])
+          ) > 0.05
+        for: 30s  # Short duration for development
+        labels:
+          severity: warning
+          environment: development
+        annotations:
+          summary: "High error rate detected in Claude Code sessions"
+          description: "Error rate is {{ $value | humanizePercentage }} over the last minute"
+
+      # High cost alert
+      - alert: HighCostUsage
+        expr: |
+          rate(otel_claude_code_cost_usage_USD_total[5m]) > 1.0
+        for: 1m
+        labels:
+          severity: warning
+          environment: development
+        annotations:
+          summary: "High cost usage detected"
+          description: "Cost usage rate is ${{ $value | printf \"%.2f\" }} per minute"
+
+      # Session duration anomaly
+      - alert: LongSessionDuration
+        expr: |
+          histogram_quantile(0.95, 
+            rate(otel_claude_code_session_duration_seconds_bucket[5m])
+          ) > 3600
+        for: 2m
+        labels:
+          severity: warning
+          environment: development
+        annotations:
+          summary: "Long session durations detected"
+          description: "95th percentile session duration is {{ $value | humanizeDuration }}"
+
+      # Token usage spike
+      - alert: TokenUsageSpike
+        expr: |
+          (
+            rate(otel_claude_code_token_usage_tokens_total[1m]) /
+            rate(otel_claude_code_token_usage_tokens_total[10m])
+          ) > 3.0
+        for: 1m
+        labels:
+          severity: warning
+          environment: development
+        annotations:
+          summary: "Token usage spike detected"
+          description: "Token usage is {{ $value | printf \"%.1f\" }}x higher than the 10-minute average"
+
+      # Simulator health check
+      - alert: SimulatorDown
+        expr: up{job="claude-metrics-simulator"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          environment: development
+        annotations:
+          summary: "Claude Code metrics simulator is down"
+          description: "The metrics simulator has been down for more than 30 seconds"
+
+      # Low activity alert (for testing)
+      - alert: LowActivity
+        expr: |
+          rate(otel_claude_code_session_count_total[5m]) < 0.1
+        for: 2m
+        labels:
+          severity: info
+          environment: development
+        annotations:
+          summary: "Low activity detected in simulator"
+          description: "Session rate is {{ $value | printf \"%.3f\" }} sessions per minute"
+
+  - name: resource-monitoring-dev
+    interval: 15s
+    rules:
+      # Prometheus storage usage
+      - alert: PrometheusStorageUsage
+        expr: |
+          (
+            prometheus_tsdb_size_bytes /
+            prometheus_tsdb_retention_limit_bytes
+          ) > 0.8
+        for: 1m
+        labels:
+          severity: warning
+          environment: development
+        annotations:
+          summary: "Prometheus storage usage high"
+          description: "Storage usage is {{ $value | humanizePercentage }}"
+
+      # Query duration
+      - alert: SlowPrometheusQueries
+        expr: |
+          histogram_quantile(0.9, 
+            rate(prometheus_engine_query_duration_seconds_bucket[5m])
+          ) > 2.0
+        for: 2m
+        labels:
+          severity: warning
+          environment: development
+        annotations:
+          summary: "Slow Prometheus queries detected"
+          description: "90th percentile query duration is {{ $value | humanizeDuration }}"
+
+  - name: cardinality-monitoring-dev
+    interval: 30s
+    rules:
+      # High cardinality metrics
+      - alert: HighCardinality
+        expr: |
+          prometheus_tsdb_symbol_table_size_bytes > 16777216  # 16MB
+        for: 1m
+        labels:
+          severity: warning
+          environment: development
+        annotations:
+          summary: "High cardinality detected"
+          description: "Symbol table size is {{ $value | humanizeBytes }}"
+
+      # Series churn rate
+      - alert: HighSeriesChurn
+        expr: |
+          rate(prometheus_tsdb_series_created_total[5m]) > 1000
+        for: 2m
+        labels:
+          severity: warning
+          environment: development
+        annotations:
+          summary: "High series churn rate"
+          description: "Creating {{ $value | printf \"%.0f\" }} new series per minute"
+
+  - name: dashboard-performance-dev
+    interval: 20s
+    rules:
+      # Dashboard load time (simulated)
+      - record: dashboard:load_time:5m
+        expr: |
+          histogram_quantile(0.95,
+            rate(grafana_http_request_duration_seconds_bucket{handler=~"/d/.*"}[5m])
+          )
+
+      # Query performance
+      - record: query:performance:1m
+        expr: |
+          histogram_quantile(0.9,
+            rate(prometheus_engine_query_duration_seconds_bucket[1m])
+          )
+
+      # Active dashboard users (simulated)
+      - record: dashboard:active_users:5m
+        expr: |
+          sum(rate(grafana_http_request_total{code=~"2.."}[5m])) by (handler)

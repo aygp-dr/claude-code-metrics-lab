@@ -1,0 +1,311 @@
+# Enhanced Claude Code Metrics Simulator Configuration
+# Implementation of RFC: Simulator and Development Instance
+
+# User population configuration
+users:
+  total: 100
+  distribution:
+    power_users:
+      percentage: 0.1  # 10% of users
+      activity_range: [2.0, 3.5]
+      volatility: 0.2
+      description: "Heavy users with high activity and low volatility"
+    regular_users:
+      percentage: 0.7  # 70% of users
+      activity_range: [0.8, 1.5]
+      volatility: 0.3
+      description: "Normal users with moderate activity"
+    idle_users:
+      percentage: 0.2  # 20% of users
+      activity_range: [0.1, 0.5]
+      volatility: 0.4
+      description: "Light users with low activity and high volatility"
+
+# Model distribution by user type
+model_distribution:
+  power_users:
+    claude-3.5-sonnet: 0.5
+    claude-3.7-opus: 0.3
+    claude-4.0-opus: 0.2
+  regular_users:
+    claude-3.5-sonnet: 0.6
+    claude-3.7-opus: 0.3
+    claude-4.0-opus: 0.1
+  idle_users:
+    claude-3.5-sonnet: 0.8
+    claude-3.7-opus: 0.15
+    claude-4.0-opus: 0.05
+
+# Cost configuration (per 1K tokens)
+costs_per_1k_tokens:
+  claude-3.5-sonnet:
+    input: 0.003
+    output: 0.015
+  claude-3.7-opus:
+    input: 0.015
+    output: 0.075
+  claude-4.0-opus:
+    input: 0.025
+    output: 0.125
+
+# Activity models configuration
+activity_models:
+  brownian:
+    volatility: 0.3
+    mean_reversion: 0.1
+    dt: 0.1
+  seasonal:
+    business_hours_multiplier: 2.0
+    weekend_multiplier: 0.3
+    timezone: "America/New_York"
+  burst:
+    enabled: true
+    interval: 3600  # Every hour
+    duration: 300   # 5 minute bursts
+    intensity: 3.0  # 3x normal activity
+
+# Test scenarios
+scenarios:
+  baseline:
+    name: "baseline_scenario"
+    description: "Normal operation with typical user patterns"
+    duration: 3600  # 1 hour
+    timeline: []
+    assertions:
+      - metric: "error_rate"
+        condition: "< 0.05"
+      - metric: "avg_session_duration"
+        condition: "< 1800"  # 30 minutes
+
+  black_friday:
+    name: "black_friday_load"
+    description: "High load simulation with 10x traffic"
+    duration: 14400  # 4 hours
+    timeline:
+      - time: 0
+        event: "start"
+        description: "Simulation begins"
+      - time: 600  # 10 minutes
+        event: "increase_load"
+        multiplier: 3.0
+        description: "Initial traffic increase"
+      - time: 1800  # 30 minutes
+        event: "increase_load"
+        multiplier: 10.0
+        description: "Peak traffic simulation"
+      - time: 7200  # 2 hours
+        event: "inject_failure"
+        type: "model_outage"
+        affected_percentage: 50
+        duration: 600
+        description: "Partial model outage"
+      - time: 7800  # 2h 10m
+        event: "recovery"
+        description: "Service recovery"
+      - time: 10800  # 3 hours
+        event: "increase_load"
+        multiplier: 5.0
+        description: "Secondary peak"
+    assertions:
+      - metric: "error_rate"
+        condition: "< 0.1"
+      - metric: "p99_latency"
+        condition: "< 5000"
+
+  gradual_rollout:
+    name: "gradual_rollout"
+    description: "Gradual user rollout simulation"
+    duration: 1800  # 30 minutes
+    timeline:
+      - time: 0
+        event: "start"
+        user_percentage: 10
+      - time: 300  # 5 minutes
+        event: "increase_load"
+        multiplier: 2.0
+        user_percentage: 25
+      - time: 600  # 10 minutes
+        event: "increase_load"
+        multiplier: 3.0
+        user_percentage: 50
+      - time: 900  # 15 minutes
+        event: "increase_load"
+        multiplier: 4.0
+        user_percentage: 75
+      - time: 1200  # 20 minutes
+        event: "increase_load"
+        multiplier: 5.0
+        user_percentage: 100
+    assertions:
+      - metric: "error_rate"
+        condition: "< 0.03"
+      - metric: "resource_utilization"
+        condition: "< 0.8"
+
+  disaster_recovery:
+    name: "disaster_recovery"
+    description: "Disaster recovery testing with cascading failures"
+    duration: 2700  # 45 minutes
+    timeline:
+      - time: 0
+        event: "start"
+      - time: 600  # 10 minutes
+        event: "inject_failure"
+        type: "total_outage"
+        duration: 300  # 5 minutes
+        description: "Complete service outage"
+      - time: 900  # 15 minutes
+        event: "recovery"
+        description: "Service restoration"
+      - time: 1800  # 30 minutes
+        event: "inject_failure"
+        type: "cascade_failure"
+        affected_percentage: 50
+        duration: 600  # 10 minutes
+        description: "Cascading failure affecting 50% of capacity"
+      - time: 2400  # 40 minutes
+        event: "recovery"
+        description: "Full recovery"
+    assertions:
+      - metric: "recovery_time"
+        condition: "< 300"  # 5 minutes
+      - metric: "data_loss"
+        condition: "= 0"
+
+  capacity_planning:
+    name: "capacity_planning"
+    description: "Capacity planning simulation with growth projections"
+    duration: 7200  # 2 hours
+    timeline:
+      - time: 0
+        event: "start"
+        baseline: "current"
+      - time: 1800  # 30 minutes
+        event: "growth_simulation"
+        growth_rate: 1.5  # 50% growth
+        description: "Simulate 6-month growth"
+      - time: 3600  # 1 hour
+        event: "growth_simulation"
+        growth_rate: 2.0  # 100% growth
+        description: "Simulate 1-year growth"
+      - time: 5400  # 1.5 hours
+        event: "growth_simulation"
+        growth_rate: 3.0  # 200% growth
+        description: "Simulate 2-year growth"
+    assertions:
+      - metric: "cost_efficiency"
+        condition: "> 0.7"
+      - metric: "response_time"
+        condition: "< 2000"
+
+  stress_test:
+    name: "stress_test"
+    description: "Extreme load testing to find breaking points"
+    duration: 1800  # 30 minutes
+    timeline:
+      - time: 0
+        event: "start"
+      - time: 300  # 5 minutes
+        event: "increase_load"
+        multiplier: 5.0
+      - time: 600  # 10 minutes
+        event: "increase_load"
+        multiplier: 10.0
+      - time: 900  # 15 minutes
+        event: "increase_load"
+        multiplier: 20.0
+      - time: 1200  # 20 minutes
+        event: "increase_load"
+        multiplier: 50.0
+        description: "Extreme load to find breaking point"
+    assertions:
+      - metric: "breaking_point"
+        condition: "> 2000"  # Should handle >2000 concurrent users
+      - metric: "graceful_degradation"
+        condition: "= true"
+
+# Fault injection configuration
+fault_injection:
+  enabled: true
+  types:
+    network_latency:
+      probability: 0.05
+      min_delay: 100  # ms
+      max_delay: 5000  # ms
+    model_errors:
+      probability: 0.02
+      error_types: ["timeout", "rate_limit", "service_unavailable"]
+    authentication_failures:
+      probability: 0.01
+      retry_after: 60  # seconds
+    resource_exhaustion:
+      probability: 0.005
+      affected_resources: ["memory", "cpu", "disk"]
+
+# Performance benchmarks for validation
+benchmarks:
+  dashboard_load:
+    target_time: 2000  # ms
+    panels: "all"
+    time_range: "24h"
+  query_performance:
+    simple_counter: 100   # ms
+    rate_calculation: 500  # ms
+    histogram_quantile: 1000  # ms
+    complex_aggregation: 2000  # ms
+  cardinality_limits:
+    total_series: 1000000     # 1M total series
+    per_metric: 10000         # 10K per metric
+    label_combinations: 100000  # 100K label combinations
+
+# Server configuration
+server:
+  host: "localhost"
+  port: 8000
+  metrics_port: 8001
+  update_interval: 1.0  # seconds
+  max_connections: 1000
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  handlers:
+    - type: "stream"
+      stream: "stdout"
+    - type: "file"
+      filename: "simulator.log"
+      max_size: "10MB"
+      backup_count: 5
+
+# Export configuration
+exports:
+  enabled: true
+  formats: ["json", "csv", "prometheus"]
+  directory: "./exports/simulation"
+  include_metadata: true
+  compression: "gzip"
+
+# Integration settings
+integrations:
+  prometheus:
+    enabled: true
+    push_gateway: null  # Set to URL if using push gateway
+    job_name: "claude-metrics-simulator"
+    instance: "dev-instance"
+  grafana:
+    enabled: true
+    url: "http://localhost:3000"
+    api_key: null  # Set if using Grafana API
+  otel:
+    enabled: false
+    endpoint: "http://localhost:14318"
+    headers: {}
+
+# Development mode settings
+development:
+  debug: false
+  hot_reload: true
+  mock_external_services: true
+  reduced_cardinality: true
+  fast_mode: false  # Accelerated time for testing

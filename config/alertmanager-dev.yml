@@ -1,0 +1,36 @@
+# AlertManager Development Configuration
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alertmanager@claude-metrics-dev'
+
+route:
+  group_by: ['alertname', 'environment']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'dev-notifications'
+  routes:
+  - match:
+      severity: critical
+    receiver: 'dev-critical'
+  - match:
+      environment: development
+    receiver: 'dev-notifications'
+
+receivers:
+- name: 'dev-notifications'
+  webhook_configs:
+  - url: 'http://localhost:9093/webhook'
+    send_resolved: true
+
+- name: 'dev-critical'
+  webhook_configs:
+  - url: 'http://localhost:9093/webhook-critical'
+    send_resolved: true
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'environment']

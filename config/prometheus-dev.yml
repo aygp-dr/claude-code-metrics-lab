@@ -1,0 +1,89 @@
+# Prometheus Development Configuration
+# Optimized for testing and development with shorter retention and intervals
+
+global:
+  scrape_interval: 5s        # Fast scraping for development
+  evaluation_interval: 5s    # Fast rule evaluation
+  external_labels:
+    environment: 'development'
+    instance: 'claude-metrics-dev'
+
+rule_files:
+  - "rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager-dev:9093
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus-dev'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 10s
+    metrics_path: /metrics
+
+  # Claude Code Metrics Simulator
+  - job_name: 'claude-metrics-simulator'
+    static_configs:
+      - targets: ['simulator:8001']
+    scrape_interval: 5s
+    metrics_path: /metrics
+    honor_labels: true
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: simulator:8001
+
+  # OTEL Collector metrics
+  - job_name: 'otel-collector-dev'
+    static_configs:
+      - targets: ['otel-collector-dev:8888']
+    scrape_interval: 10s
+    metrics_path: /metrics
+
+  # Redis metrics (if exporter is added)
+  - job_name: 'redis-dev'
+    static_configs:
+      - targets: ['redis-dev:6379']
+    scrape_interval: 15s
+    metrics_path: /metrics
+
+  # Grafana metrics
+  - job_name: 'grafana-dev'
+    static_configs:
+      - targets: ['grafana-dev:3000']
+    scrape_interval: 15s
+    metrics_path: /metrics
+
+  # Nginx metrics (if exporter is added)
+  - job_name: 'nginx-dev'
+    static_configs:
+      - targets: ['nginx-dev:80']
+    scrape_interval: 15s
+    metrics_path: /metrics
+
+# Remote write for testing (optional)
+# remote_write:
+#   - url: "http://remote-prometheus:9090/api/v1/write"
+#     name: "development-remote"
+#     queue_config:
+#       max_samples_per_send: 1000
+#       max_shards: 10
+
+# Development-specific configurations
+storage:
+  tsdb:
+    retention.time: 7d
+    retention.size: 10GB
+    wal-compression: true
+
+# Enable feature flags for development
+feature_flags:
+  - promql-at-modifier
+  - promql-negative-offset

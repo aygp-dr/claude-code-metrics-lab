@@ -1,0 +1,28 @@
+# Dockerfile for Scenario Runner
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    jq \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+RUN pip install --no-cache-dir \
+    requests \
+    pyyaml \
+    pytest \
+    pandas \
+    matplotlib
+
+# Copy scenario runner scripts
+COPY scripts/scenario_runner.py ./scenario_runner.py
+COPY scripts/test_dashboard.py ./test_dashboard.py
+
+# Create directories
+RUN mkdir -p /app/scenarios /app/results
+
+# Default command
+CMD ["python", "scenario_runner.py"]
