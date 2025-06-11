@@ -11,11 +11,11 @@ This document outlines the educational requirements for implementing an HTTP-bas
 
 Upon completing this project, students will understand:
 
-1. **HTTP Middleware Patterns** - How request/response chains work
-2. **Transparent Interception** - Building invisible proxies like mitmproxy
-3. **Telemetry Protocols** - Understanding OTLP/JSON structure
-4. **Observability of Observability** - Meta-monitoring concepts
-5. **Data Pipeline Construction** - Building analysis systems
+1. *HTTP Middleware Patterns* - How request/response chains work
+2. *Transparent Interception* - Building invisible proxies like mitmproxy
+3. *Telemetry Protocols* - Understanding OTLP/JSON structure
+4. *Observability of Observability* - Meta-monitoring concepts
+5. *Data Pipeline Construction* - Building analysis systems
 
 * Conceptual Foundation
 
@@ -65,10 +65,10 @@ Our telemetry interceptor is essentially "mitmproxy for OTLP":
 ** From Riedesel's "Software Telemetry"
 
 Key concepts we're implementing:
-- **Chapter 3**: Collection Patterns - Push-based telemetry
-- **Chapter 5**: Data Formats - Structured JSON telemetry
-- **Chapter 7**: Processing Pipelines - Stream processing
-- **Chapter 12**: Meta-monitoring - Observing the observers
+- *Chapter 3*: Collection Patterns - Push-based telemetry
+- *Chapter 5*: Data Formats - Structured JSON telemetry
+- *Chapter 7*: Processing Pipelines - Stream processing
+- *Chapter 12*: Meta-monitoring - Observing the observers
 
 * Architecture Overview
 
@@ -326,17 +326,17 @@ Create formatted console output like:
 
 ** Exercise 4: Build Analysis Modules
 Implement pluggable analyzers:
-1. **Service Map**: Track service dependencies
-2. **Error Detector**: Find failed operations
-3. **Latency Analyzer**: Calculate percentiles
-4. **Cardinality Checker**: Detect high-cardinality attributes
+1. *Service Map*: Track service dependencies
+2. *Error Detector*: Find failed operations
+3. *Latency Analyzer*: Calculate percentiles
+4. *Cardinality Checker*: Detect high-cardinality attributes
 
 ** Exercise 5: Storage Strategies
 Compare different approaches:
-1. **Memory**: Ring buffer of last N requests
-2. **JSON File**: Append-only log file
-3. **SQLite**: Structured queries
-4. **Custom**: Your own format
+1. *Memory*: Ring buffer of last N requests
+2. *JSON File*: Append-only log file
+3. *SQLite*: Structured queries
+4. *Custom*: Your own format
 
 * Testing Your Interceptor
 
@@ -378,44 +378,44 @@ otel-cli span --endpoint http://localhost:4318 \
 
 Students demonstrate understanding by:
 
-1. **Transparency** (20%)
+1. *Transparency* (20%)
    - Interceptor doesn't break existing telemetry flow
    - Grafana still receives all data
    - No data modification unless intentional
 
-2. **Protocol Understanding** (20%)
+2. *Protocol Understanding* (20%)
    - Can explain OTLP/JSON structure
    - Correctly parses all three signal types
    - Handles malformed requests gracefully
 
-3. **Pattern Implementation** (20%)
+3. *Pattern Implementation* (20%)
    - Clean middleware/handler chain
    - Separation of concerns
    - Pluggable architecture
 
-4. **Analysis Capabilities** (20%)
+4. *Analysis Capabilities* (20%)
    - Extracts meaningful insights
    - Implements at least 2 analysis modules
    - Can answer questions about traffic
 
-5. **Storage & Querying** (20%)
+5. *Storage & Querying* (20%)
    - Stores data efficiently
    - Can query historical data
    - Implements retention policy
 
 * Common Pitfalls to Avoid
 
-1. **Breaking Transparency**
+1. *Breaking Transparency*
    - Modifying request headers incorrectly
    - Not preserving HTTP status codes
    - Changing response timing
 
-2. **Blocking the Pipeline**
+2. *Blocking the Pipeline*
    - Synchronous storage operations
    - Long analysis computations
    - Not handling errors gracefully
 
-3. **Memory Leaks**
+3. *Memory Leaks*
    - Storing everything forever
    - Not implementing limits
    - Keeping references to large payloads
@@ -423,16 +423,16 @@ Students demonstrate understanding by:
 * References and Inspiration
 
 ** Similar Tools
-1. **mitmproxy** - Transparent HTTP/HTTPS proxy
-2. **Burp Suite** - Web security testing proxy
-3. **Charles Proxy** - HTTP debugging proxy
-4. **Fiddler** - Web debugging proxy
+1. *mitmproxy* - Transparent HTTP/HTTPS proxy
+2. *Burp Suite* - Web security testing proxy
+3. *Charles Proxy* - HTTP debugging proxy
+4. *Fiddler* - Web debugging proxy
 
 ** Middleware Patterns
-1. **Express.js** - Node.js middleware
-2. **Ring** - Clojure HTTP middleware
-3. **Rack** - Ruby web server interface
-4. **Django Middleware** - Python request/response processing
+1. *Express.js* - Node.js middleware
+2. *Ring* - Clojure HTTP middleware
+3. *Rack* - Ruby web server interface
+4. *Django Middleware* - Python request/response processing
 
 ** Reading
 1. Riedesel, J. (2021). "Software Telemetry" - Chapters 3, 5, 7, 12

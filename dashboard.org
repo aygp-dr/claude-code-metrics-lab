@@ -152,12 +152,12 @@ Legend:
 
 ** Features Highlighted
 
-1. **Key Metrics Row**: Quick glance at important numbers with sparklines
-2. **Time Series Graphs**: Show trends over time for tokens and costs
-3. **Summary Table**: Sortable data for detailed model comparison
-4. **Distribution Charts**: Visual breakdown of usage patterns
-5. **Activity Monitoring**: Real-time session and commit tracking
-6. **Cache Efficiency**: Gauge showing optimization opportunities
+1. *Key Metrics Row*: Quick glance at important numbers with sparklines
+2. *Time Series Graphs*: Show trends over time for tokens and costs
+3. *Summary Table*: Sortable data for detailed model comparison
+4. *Distribution Charts*: Visual breakdown of usage patterns
+5. *Activity Monitoring*: Real-time session and commit tracking
+6. *Cache Efficiency*: Gauge showing optimization opportunities
 
 ** Color Coding (in actual dashboard)
 
