@@ -4,7 +4,8 @@
 # Phony targets
 .PHONY: help install clean analyze lint format dashboards dashboards-dev dashboards-prod \
         simulate simulate-scenario simulate-guile simulate-dev test-simulator \
-        otlp-debug-sink otlp-interceptor otlp-interceptor-verbose
+        otlp-debug-sink otlp-interceptor otlp-interceptor-verbose \
+        tcs-report tcs-badges tcs
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -102,3 +103,17 @@ otlp-interceptor-verbose: ## OTLP interceptor with real-time analysis
 	@echo "Forwarding to: pi.lan:4318"
 	@echo "Logging to: otlp-interceptor-$$(date +%Y%m%d-%H%M%S).log"
 	@nc -l 14318 | tee "otlp-interceptor-$$(date +%Y%m%d-%H%M%S).log" | tee >(grep -E "(POST|service\.name|tokens)" >&2) | nc pi.lan 4318
+
+tcs-report: ## Generate TCS (Trailer Consistency Score) report
+	@echo "Generating TCS report..."
+	@bash scripts/tcs-report-generator.sh
+	@echo "Report generated at: reports/tcs_report.md"
+
+tcs-badges: tcs-report ## Generate TCS badges from report data
+	@echo "Generating TCS badges..."
+	@uv run python scripts/generate_tcs_badges.py
+
+tcs: tcs-badges ## Run full TCS analysis (report + badges)
+	@echo "TCS analysis complete!"
+	@echo "View report: reports/tcs_report.md"
+	@echo "Badges created: static/badges/"

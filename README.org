@@ -1,6 +1,11 @@
 #+TITLE: Claude Code Metrics Lab
 #+DESCRIPTION: OpenTelemetry-based metrics tracking and analysis for Claude Code usage
 
+[[https://github.com/astral-sh/uv][https://img.shields.io/badge/uv-0.5+-blue.svg]]
+[[https://www.python.org/][https://img.shields.io/badge/python-3.10+-blue.svg]]
+[[https://img.shields.io/badge/license-MIT-green.svg]]
+[[https://img.shields.io/badge/status-draft-yellow.svg]]
+
 * Overview
 
 A pedagogical lab for learning telemetry implementation through practical Claude Code metrics tracking. This project emphasizes *understanding* over quick setup, providing workshops, exercises, and real-world examples.
